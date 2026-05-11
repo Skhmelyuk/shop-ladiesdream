@@ -1,0 +1,132 @@
+
+.about-page {
+    background-image: url("../images/pink-flowers.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    color: #3a003a;
+}
+
+.about-page .info-card {
+    max-width: 800px;
+    width: 100%;
+    margin: 20px auto;
+    padding: 40px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(6px);
+}
+
+.about-header {
+    color: #ad1457;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 25px;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+.about-text {
+    color: #1b1717;
+    line-height: 1.8;
+    font-size: 1.05rem;
+}
+
+.about-text ul {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.about-text li {
+    margin-bottom: 10px;
+}
+
+.about-signature {
+    text-align: right;
+    font-style: italic;
+    color: #ad1457;
+}
+
+.contact-page {
+    background-image: url("../images/tekstura-fon.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    color: #3a003a;
+}
+
+.contact-page .info-card {
+    max-width: 800px;
+    width: 100%;
+    margin: 20px auto;
+    padding: 40px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(5px);
+}
+
+.contact-header {
+    color: #b0007a;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 25px;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+
+.contact-info p {
+    font-size: 1.1rem;
+    color: #42003d;
+    margin: 10px 0;
+}
+
+.contact-info i {
+    color: #e91e63;
+    margin-right: 8px;
+}
+
+
+hr {
+    border: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #f8bbd0, #f48fb1);
+    border-radius: 2px;
+}
+
+
+.fade-in {
+    opacity: 0;
+    transform: translateY(15px);
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .info-card {
+        padding: 25px;
+        margin: 10px;
+    }
+    .about-text,
+    .contact-info p {
+        font-size: 1rem;
+    }
+}

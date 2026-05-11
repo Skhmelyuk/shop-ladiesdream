@@ -1,0 +1,33 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Контакти{% endblock %}
+
+{% block content %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{% static 'main/info_pages.css' %}">
+
+<div class="contact-page fade-in">
+    <div class="info-card contact-card">
+        <h1 class="contact-header">📞 Зв'яжіться з Нами</h1>
+        <p>
+            Ми завжди раді відповісти на ваші запитання та допомогти з вибором. 
+            Оберіть зручний для вас спосіб зв'язку:
+        </p>
+        
+        <hr class="mt-4 mb-4">
+        
+        <div class="contact-info text-left">
+            <p><i class="fas fa-envelope fa-fw"></i> <strong>Email:</strong> support@myshop.com</p>
+            <p><i class="fas fa-phone fa-fw"></i> <strong>Телефон:</strong> +38 (067) 451-96-49</p>
+            <p><i class="fas fa-clock fa-fw"></i> <strong>Графік роботи:</strong> Стаціонарний магазин: Вівторок - Неділя, 8:00 - 17:00; Цілодобово оналайн</p>
+            <p><i class="fas fa-map-marker-alt fa-fw"></i> <strong>Адреса магазину:</strong> Територія ринку,
+                ТД "Сяйво", Магазин "Світ білизни", м.Кам'янець-Подільський, Україна</p>
+        </div>
+        
+        <hr class="mt-4 mb-4">
+        
+        <p class="text-center">Ми відповімо вам протягом 24 годин 💌</p>
+    </div>
+</div>
+{% endblock %}

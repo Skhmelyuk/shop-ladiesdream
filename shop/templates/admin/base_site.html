@@ -1,0 +1,154 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block dark-mode-vars %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/custom.css' %}">
+<style>
+#header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 56px;
+    background: linear-gradient(135deg, #e91e8c 0%, #ff69b4 100%);
+    box-shadow: 0 2px 12px rgba(233,30,99,0.35);
+}
+
+#branding {
+    display: flex;
+    align-items: center;
+}
+
+#site-name {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+#site-name a {
+    color: #fff !important;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#user-tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.9);
+    flex-wrap: nowrap;
+}
+
+#user-tools strong {
+    color: #fff;
+    font-weight: 700;
+}
+
+#user-tools a {
+    color: rgba(255,255,255,0.9) !important;
+    text-decoration: none;
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 4px 12px;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+#user-tools a:hover {
+    background: rgba(255,255,255,0.28);
+    color: #fff !important;
+}
+
+#user-tools #logout-form {
+    display: inline;
+    margin: 0;
+}
+
+#user-tools #logout-form button {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+#user-tools #logout-form button:hover {
+    background: rgba(255,255,255,0.28);
+    color: #fff;
+}
+
+.theme-toggle { display: none !important; }
+
+#admin-nav-menu {
+    background: #fff;
+    border-bottom: 2px solid #f8bbd0;
+    padding: 0 24px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(233,30,99,0.08);
+}
+
+#admin-nav-menu .nav-item {
+    display: inline-block;
+    padding: 10px 16px;
+    color: #666;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: color 0.2s;
+    white-space: nowrap;
+}
+
+#admin-nav-menu .nav-item:hover {
+    color: #e91e63;
+}
+
+#admin-nav-menu .nav-item.active {
+    color: #e91e63;
+    font-weight: 700;
+}
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        👗 LadiesDream
+    </a>
+</h1>
+{% endblock %}
+
+{% block welcome-msg %}
+    👋 {% translate 'Welcome,' %}
+    <strong>{% firstof user.get_short_name user.get_username %}</strong>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block nav-breadcrumbs %}
+{% if user.is_staff %}
+<nav id="admin-nav-menu">
+    <a href="{% url 'admin:index' %}" class="nav-item {% if request.path == '/admin/' %}active{% endif %}">🏠 Дашборд</a>
+    <a href="/admin/main/product/" class="nav-item {% if '/admin/main/product' in request.path or '/admin/main/productimage' in request.path or '/admin/main/productvariant' in request.path %}active{% endif %}">👗 Товари</a>
+    <a href="/admin/main/category/" class="nav-item {% if '/admin/main/category' in request.path %}active{% endif %}">📁 Категорії</a>
+    <a href="/admin/orders/order/" class="nav-item {% if '/admin/orders/' in request.path %}active{% endif %}">📦 Замовлення</a>
+    <a href="/admin/auth/user/" class="nav-item {% if '/admin/auth/' in request.path or '/admin/accounts/' in request.path %}active{% endif %}">👥 Користувачі</a>
+    <a href="/admin/reviews/review/" class="nav-item {% if '/admin/reviews/' in request.path %}active{% endif %}">⭐ Відгуки</a>
+    <a href="/admin/discounts/promocode/" class="nav-item {% if '/admin/discounts/' in request.path %}active{% endif %}">🏷️ Промокоди</a>
+    <a href="/admin/main/supplier/" class="nav-item {% if '/admin/main/supplier' in request.path %}active{% endif %}">🏭 Постачальники</a>
+</nav>
+{% endif %}
+{{ block.super }}
+{% endblock %}

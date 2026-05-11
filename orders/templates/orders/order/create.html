@@ -1,0 +1,240 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load math_filters %}
+
+{% block title %}Оформлення замовлення{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <h1>Оформлення замовлення</h1>
+
+    {% if order %}
+        <div class="confirmation-card">
+            <h2>Дякуємо за Ваше замовлення №{{ order.id }}!</h2>
+            <p>Сума до сплати: <strong>{{ total_price_after_discount|floatformat:2 }} грн</strong></p>
+            {% if discount_amount > 0 %}
+            <p>Промокод {{ promo_code }} застосовано: -{{ discount_amount }} грн.</p>
+            {% endif %}
+            <p>До сплати: {{ total_price }} грн.</p>
+            <p>Ми зв'яжемося з Вами для уточнення деталей доставки за адресою: {{ order.city }}, {{ order.delivery_address }}</p>
+
+            {% if liqpay_data %}
+                <form method="POST" action="{{ liqpay_data.send_url }}">
+                    <input type="hidden" name="data" value="{{ liqpay_data.data }}">
+                    <input type="hidden" name="signature" value="{{ liqpay_data.signature }}">
+                    <button type="submit" class="btn-liqpay">
+                        <i class="fas fa-lock"></i> Оплатити онлайн
+                    </button>
+                </form>
+            {% else %}
+                <p>Оплата при отриманні доступна.</p>
+            {% endif %}
+        </div>
+    {% else %}
+        <form method="post" id="order-form">
+            {% csrf_token %}
+            <div class="form-section">
+                <h3>Ваші дані</h3>
+                <div>{{ form.first_name.label_tag }} {{ form.first_name }}</div>
+                <div>{{ form.last_name.label_tag }} {{ form.last_name }}</div>
+                <div>{{ form.email.label_tag }} {{ form.email }}</div>
+                <div>{{ form.phone.label_tag }} {{ form.phone }}</div>
+            </div>
+
+            <div class="form-section">
+                <h3>Доставка</h3>
+                <div>{{ form.delivery_type.label_tag }} {{ form.delivery_type }}</div>
+                <div>
+                    <label for="id_city_input">Місто доставки</label>
+                    <input type="text" id="id_city_input" name="city" autocomplete="off">
+                    <div id="city_suggestions" class="autocomplete-list"></div>
+                </div>
+                <div>
+                    <label for="id_address_input">Адреса / відділення</label>
+                    <input type="text" id="id_address_input" name="delivery_address" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Промокод</h3>
+                <input type="text" id="promo-code" placeholder="Введіть промокод">
+                <button type="button" id="apply-promo" class="btn-submit">Застосувати</button>
+                <p id="promo-info">
+                    {% if request.session.promo_discount %}
+                        ✅ Промокод застосовано: -{{ request.session.promo_discount }}%
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="form-section">
+                <h3>Оплата</h3>
+                <div>{{ form.payment_method.label_tag }} {{ form.payment_method }}</div>
+            </div>
+
+            <div class="form-section">
+                <h3>Ваше замовлення</h3>
+                <ul>
+                    {% for item in cart %}
+                        <li>{{ item.product.name }} × {{ item.quantity }} = {{ item.price|floatformat:2 }} грн</li>
+                    {% endfor %}
+                </ul>
+                <p>Сума до сплати: {{ total_price|floatformat:2 }} грн</p>
+            </div>
+
+            <button type="submit" class="btn-submit">Підтвердити замовлення</button>
+        </form>
+    {% endif %}
+</div>
+
+<style>
+.checkout-container { max-width: 700px; margin: 50px auto; padding: 30px; background-color: #fff0f5; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+h1 { color: #e91e63; text-align: center; margin-bottom: 25px; }
+.form-section { background-color: #ffe6f0; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+.form-section h3 { color: #d81b60; margin-bottom: 15px; }
+input, select { width: 100%; padding: 10px 15px; margin-top: 5px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ffc1e3; background-color: #fff0f5; }
+button.btn-submit { width: 100%; padding: 15px; background-color: #ff80ab; color: white; font-size: 1.2rem; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+button.btn-submit:hover { background-color: #d81b60; }
+.confirmation-card { text-align: center; padding: 25px; border-radius: 15px; background-color: #fff0f5; box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+.btn-liqpay { margin-top: 15px; padding: 12px 40px; background-color: #ff4081; color: #fff; font-size: 1.2rem; font-weight: bold; border-radius: 50px; border: none; cursor: pointer; }
+.btn-liqpay:hover { background-color: #d81b60; transform: translateY(-2px); transition: 0.2s; }
+.autocomplete-list, .np-suggestions { background: #fff; border: 1px solid #ffc1e3; border-radius: 10px; max-height: 200px; overflow-y: auto; position: absolute; z-index: 1000; width: calc(100% - 20px); padding-left: 0; margin-top: 0; list-style: none; }
+.np-suggestion-item { padding: 8px 12px; cursor: pointer; }
+.np-suggestion-item:hover { background-color: #ffe6f0; }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    const csrftoken = '{{ csrf_token }}';
+
+    // --- Промокод ---
+    $('#apply-promo').on('click', function(e) {
+        e.preventDefault();
+        let code = $('#promo-code').val().trim();
+        if (!code) return;
+
+        $.post("{% url 'orders:apply_promo_code' %}", 
+               { promo_code: code, csrfmiddlewaretoken: csrftoken }, 
+               function(data) {
+            const info = $('#promo-info');
+            if (data.success) {
+                info.text(`✅ Промокод застосовано: -${data.discount_amount.toFixed(2)} грн`);
+                $('#total-price').text(data.total_after_discount.toFixed(2));
+                alert('Промокод застосовано!');
+            } else {
+                info.text(`❌ ${data.error}`);
+                alert(data.error);
+            }
+        });
+    });
+
+    // --- NovaPoshta автозаповнення міст і відділень ---
+    const cityInput = $('#id_city_input');
+    const suggestionsBox = $('#city_suggestions');
+    const deliveryTypeSelect = $('#id_delivery_type');
+    const deliveryAddressInput = $('#id_address_input');
+    const proxyUrl = "{% url 'orders:novaposhta_proxy' %}";
+    const cache = { cities: {}, warehouses: {} };
+
+    function proxyNovaPoshta(method, data) {
+        return $.ajax({
+            url: proxyUrl,
+            method: "POST",
+            contentType: "application/json",
+            headers: { "X-CSRFToken": csrftoken },
+            data: JSON.stringify({ modelName: "Address", calledMethod: method, methodProperties: data })
+        });
+    }
+
+    function clearSuggestions() { suggestionsBox.empty().hide(); }
+
+    function highlightMatch(text, query) { return text.replace(new RegExp(`(${query})`, "gi"), "<strong>$1</strong>"); }
+
+    function loadWarehouses(settlementRef) {
+        if (!settlementRef) return;
+        if (cache.warehouses[settlementRef]) return renderWarehouseSuggestions(cache.warehouses[settlementRef]);
+        proxyNovaPoshta("getWarehouses", { SettlementRef: settlementRef, Limit: 200 }).done(res => {
+            if (res.success && res.data?.length) {
+                cache.warehouses[settlementRef] = res.data;
+                renderWarehouseSuggestions(res.data);
+            }
+        });
+    }
+
+    function renderWarehouseSuggestions(warehouses) {
+        let container = $('#address_suggestions');
+        if (!container.length) {
+            container = $('<div id="address_suggestions" class="np-suggestions"></div>').appendTo(deliveryAddressInput.parent());
+        }
+        deliveryAddressInput.on('input', function() {
+            const query = $(this).val().trim().toLowerCase();
+            container.empty();
+            if (!query) return;
+            warehouses.filter(w => w.Description.toLowerCase().includes(query) || w.Number.toLowerCase().includes(query))
+                .forEach(w => {
+                    $('<div class="np-suggestion-item"></div>')
+                        .html(highlightMatch(`${w.Description} (${w.Number})`, query))
+                        .on('click', () => {
+                            deliveryAddressInput.val(`${w.Description} (${w.Number})`);
+                            container.empty();
+                        })
+                        .appendTo(container);
+                });
+        });
+        $(document).on('click', e => { if (!container.is(e.target) && !deliveryAddressInput.is(e.target)) container.empty(); });
+    }
+
+    // --- Пошук міст ---
+    let debounceTimer;
+    cityInput.on('input', function() {
+        const query = $(this).val().trim();
+        clearTimeout(debounceTimer);
+        clearSuggestions();
+        if (query.length < 2 || deliveryTypeSelect.val() !== "NP") return;
+        debounceTimer = setTimeout(() => {
+            if (cache.cities[query]) return renderCitySuggestions(cache.cities[query], query);
+            proxyNovaPoshta("searchSettlements", { CityName: query, Limit: 8 }).done(res => {
+                if (res.success && res.data?.length) {
+                    const addresses = res.data[0].Addresses || [];
+                    if (addresses.length) {
+                        cache.cities[query] = addresses;
+                        renderCitySuggestions(addresses, query);
+                    }
+                }
+            });
+        }, 300);
+    });
+
+    function renderCitySuggestions(addresses, query) {
+        suggestionsBox.show().empty();
+        addresses.forEach(addr => {
+            const displayName = [addr.MainDescription || addr.Present, addr.Area].filter(Boolean).join(", ");
+            const settlementRef = addr.SettlementRef || addr.Ref;
+            $('<div class="np-suggestion-item"></div>')
+                .html(highlightMatch(displayName, query))
+                .on('click', () => { 
+                    cityInput.val(displayName);
+                    clearSuggestions();
+                    loadWarehouses(settlementRef);
+                })
+                .appendTo(suggestionsBox);
+        });
+    }
+
+    $(document).on('click', e => { if (!suggestionsBox.is(e.target) && !cityInput.is(e.target)) clearSuggestions(); });
+
+    deliveryTypeSelect.on('change', function() {
+        clearSuggestions();
+        cityInput.prop('disabled', false);
+        deliveryAddressInput.val("");
+        const val = $(this).val();
+        if (val === "NP") deliveryAddressInput.attr("placeholder", "Спочатку оберіть місто").prop("readonly", false);
+        else if (val === "UP") deliveryAddressInput.attr("placeholder", "Введіть адресу відділення Укрпошти").prop("readonly", false);
+        else if (val === "COURIER") deliveryAddressInput.attr("placeholder", "Введіть адресу доставки кур’єром").prop("readonly", false);
+        else if (val === "PICKUP") deliveryAddressInput.val("м. Кам'янець-Подільський, територія ринку, торговий дім 'Сяйво', магазин 'Світ білизни'").prop("readonly", true);
+        else deliveryAddressInput.prop("readonly", false);
+    });
+});
+</script>
+{% endblock %}

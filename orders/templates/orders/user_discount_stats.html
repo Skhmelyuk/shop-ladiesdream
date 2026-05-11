@@ -1,0 +1,32 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<h2>Моя статистика промокодів</h2>
+
+<p>Використано промокодів: <strong>{{ total_usage }}</strong></p>
+<p>Загальна зекономлена сума: <strong>{{ total_savings }} грн</strong></p>
+
+<h3>Список замовлень з промокодом</h3>
+<table>
+    <tr>
+        <th>Замовлення</th>
+        <th>Дата</th>
+        <th>Сума замовлення</th>
+        <th>Сума знижки</th>
+        <th>Промокод</th>
+    </tr>
+    {% for order in orders %}
+    <tr>
+        <td>{{ order.id }}</td>
+        <td>{{ order.created|date:"d.m.Y H:i" }}</td>
+        <td>{{ order.get_total_cost }} грн</td>
+        <td>{{ order.discounted_amount }} грн</td>
+        <td>{{ order.discount.code }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">Промокоди не використовувалися</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

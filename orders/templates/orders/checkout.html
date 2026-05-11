@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <title>Підтвердження замовлення – LadiesDream</title>
+
+    <style>
+        body {
+            background: #fff0f7;
+            font-family: "Arial", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(255, 140, 178, 0.3);
+        }
+
+        h2 {
+            text-align: center;
+            color: #d63384;
+            margin-bottom: 20px;
+        }
+
+        .summary-box {
+            background: #ffe2ef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #ffb6d2;
+        }
+
+        .summary-row {
+            font-size: 18px;
+            padding: 5px 0;
+        }
+
+        .summary-row span {
+            float: right;
+            font-weight: bold;
+        }
+
+        .pay-btn, .cod-btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .pay-btn {
+            background: #d63384;
+            color: white;
+        }
+
+        .pay-btn:hover {
+            background: #b42a6c;
+        }
+
+        .cod-btn {
+            background: #ffd6e8;
+            color: #b42a6c;
+        }
+
+        .cod-btn:hover {
+            background: #ffcae3;
+        }
+
+        .note {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .btn-home {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 12px 32px;
+            background: linear-gradient(90deg, #e91e8c, #ff69b4);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: opacity 0.2s;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn-home:hover {
+            opacity: 0.85;
+            color: #fff;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Ваше замовлення прийнято 💗</h2>
+
+    <div class="summary-box">
+        <div class="summary-row">Номер замовлення <span>#{{ order.id }}</span></div>
+        <div class="summary-row">Сума товарів <span>{{ original_price }} грн</span></div>
+
+        {% if discount_amount > 0 %}
+        <div class="summary-row">Знижка ({{ order.discount_percent }}%) <span>-{{ discount_amount }} грн</span></div>
+        {% endif %}
+
+        <div class="summary-row" style="font-size: 20px; margin-top: 10px;">
+            До оплати <span>{{ total_price_after_discount }} грн</span>
+        </div>
+    </div>
+
+    {% if liqpay_data %}
+        <!-- ONLINE PAYMENT -->
+        <form method="POST" action="https://www.liqpay.ua/api/3/checkout" accept-charset="utf-8">
+            <input type="hidden" name="data" value="{{ liqpay_data.data }}">
+            <input type="hidden" name="signature" value="{{ liqpay_data.signature }}">
+
+            <button class="pay-btn">Оплатити онлайн через LiqPay 💳</button>
+        </form>
+
+        <button class="cod-btn" disabled>Оплата при отриманні недоступна (вибрано онлайн)</button>
+
+    {% else %}
+        <!-- CASH ON DELIVERY -->
+        <button class="cod-btn">Оплата при отриманні ✓</button>
+    {% endif %}
+
+    <p class="note">Ми зателефонуємо вам для підтвердження замовлення 💕</p>
+
+    <p style="text-align:center; color:#555; margin-top:18px;">Дякуємо за Ваше замовлення №{{ order.id }}!</p>
+    <a href="{% url 'main:product-list' %}" class="btn-home">🏠 На головну</a>
+
+
+</div>
+
+</body>
+</html>

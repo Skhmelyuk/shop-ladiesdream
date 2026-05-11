@@ -1,0 +1,20 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Підтвердження Email{% endblock %} 
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'main/auth.css' %}">
+<div class="auth-container" style="text-align: center; padding: 40px 20px;">
+    <h1 style="color: #c2185b; margin-bottom: 20px;"><i class="fas fa-envelope-open-text" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i> Підтвердіть ваш Email</h1>
+    
+    <p style="font-size: 1.1rem; line-height: 1.6; color: #555;">
+        Ми відправили листа з посиланням для підтвердження на вашу адресу. <br>
+        Будь ласка, перевірте вашу пошту (можливо, і папку "Спам") та перейдіть за посиланням, щоб активувати акаунт.
+    </p>
+    
+    <p class="auth-link" style="margin-top: 30px;">
+        <a href="{% url 'account_login' %}" class="btn-submit" style="display: inline-block; text-decoration: none; max-width: 200px;">Повернутися до входу</a>
+    </p>
+</div>
+{% endblock %}

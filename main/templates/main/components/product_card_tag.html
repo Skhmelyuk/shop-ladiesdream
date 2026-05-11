@@ -1,0 +1,26 @@
+{% load shop_filters %}
+<div class="product-card" style="animation-delay: {{ delay }}s;">
+    
+    {% if product.image %}
+        <a href="{{ product.get_absolute_url }}">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        </a>
+    {% endif %}
+
+    <h3>
+        <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+    </h3>
+    
+    {% if product.featured %}
+        <span class="featured-badge">Рекомендовано!</span>
+    {% endif %}
+
+    <p>{{ product.description|truncatewords:15 }}</p>
+    
+    <div class="price">{{ product.price|currency }}</div>
+    <div class="updated">Переглядів: {{ product.views|compact_number }}</div>
+
+    <button class="add-to-cart">
+        Додати в кошик
+    </button>
+</div>

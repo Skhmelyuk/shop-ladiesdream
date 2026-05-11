@@ -1,0 +1,109 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Оплата замовлення №{{ order.id }}{% endblock %}
+
+{% block content %}
+
+<div class="payment-card">
+    <h1>Оплата замовлення №{{ order.id }}</h1>
+
+    <div class="total-amount-box">
+        <p>Загальна сума до оплати:</p>
+        <span>{{ order.get_total_cost }} грн</span>
+    </div>
+
+    <p class="lead">Натисніть кнопку нижче, щоб перейти до захищеної сторінки оплати LiqPay</p>
+
+    <form method="POST" action="https://www.sandbox.liqpay.ua/api/3/checkout" class="mt-4">
+        {% csrf_token %}
+        <input type="hidden" name="data" value="{{ liqpay_data.data }}" />
+        <input type="hidden" name="signature" value="{{ liqpay_data.signature }}" />
+        
+        <button type="submit" class="btn-liqpay">
+            <i class="fas fa-lock"></i> Оплатити LiqPay
+        </button>
+    </form>
+
+    <p class="small-text">Ваші платіжні дані будуть оброблені на захищеній сторінці LiqPay</p>
+</div>
+
+<style>
+
+body {
+    background-color: #fce4ec !important;
+}
+
+.payment-card {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+h1 {
+    color: #e91e63;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.total-amount-box {
+    background-color: #fff0f5;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border: 1px solid #ffc1e3;
+}
+
+.total-amount-box p {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #880e4f;
+    font-weight: 600;
+}
+
+.total-amount-box span {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #d81b60;
+    display: block;
+    margin-top: 5px;
+}
+
+.lead {
+    font-size: 1.1rem;
+    color: #4a4a4a;
+    margin-bottom: 30px;
+}
+
+.btn-liqpay {
+    background-color: #ff4081;
+    border: none;
+    color: white;
+    padding: 15px 40px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: inline-block;
+    width: auto;
+}
+
+.btn-liqpay:hover {
+    background-color: #d81b60;
+    transform: translateY(-2px);
+}
+
+p.small-text {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #888;
+}
+</style>
+
+{% endblock %}

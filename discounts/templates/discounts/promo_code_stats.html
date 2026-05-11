@@ -1,0 +1,70 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'main/discounts.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="shadow-sm p-5" style="background-color: #fff; border: 2px solid #f8c1d8; border-radius: 12px;">
+        <h2 class="text-center mb-4 text-pink">📊 Статистика промокоду: {{ promo_code.code }}</h2>
+
+        <div class="mb-3 text-center">
+            <span class="fw-bold">Тип знижки:</span>
+            {% if promo_code.discount_type == 'percentage' %}
+                {{ promo_code.value }}%
+            {% elif promo_code.discount_type == 'fixed' %}
+                {{ promo_code.value }} грн
+            {% elif promo_code.discount_type == 'free_shipping' %}
+                Безкоштовна доставка
+            {% endif %}
+            <br>
+            <span class="fw-bold">Діє з:</span> {{ promo_code.start_date|date:"d.m.Y" }} 
+            <span class="fw-bold">по:</span> {{ promo_code.end_date|date:"d.m.Y" }}
+        </div>
+
+        {% if usages %}
+        <table class="table-pink">
+            <thead>
+                <tr>
+                    <th>Користувач</th>
+                    <th>Замовлення</th>
+                    <th>Сума знижки</th>
+                    <th>Дата використання</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usage in usages %}
+                <tr>
+                    <td>{{ usage.user.username }}</td>
+                    <td>
+                        <a href="{% url 'main:order_detail' usage.order.id %}" class="text-decoration-none">
+                            Замовлення #{{ usage.order.id }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if promo_code.discount_type == 'percentage' %}
+                            {{ usage.discount_amount }}%
+                        {% else %}
+                            {{ usage.discount_amount }} грн
+                        {% endif %}
+                    </td>
+                    <td>{{ usage.created_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="text-end mt-3 fw-bold">
+            Загальна кількість використань: {{ promo_code.used_count }}
+        </div>
+        {% else %}
+            <div class="alert-pink text-center">😔 Цей промокод ще не використовували.</div>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{% url 'discounts:promo_code_list' %}" class="btn btn-pink px-4 py-2">⬅ Повернутися до списку</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

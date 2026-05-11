@@ -1,0 +1,38 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Про нас{% endblock %}
+
+{% block content %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{% static 'main/info_pages.css' %}">
+
+<div class="about-page fade-in">
+    <div class="info-card about-card">
+        <h1 class="about-header">💖 Про нас — LadiesDream</h1>
+        <p class="about-text">
+            Магазин <strong>LadiesDream</strong> створений, щоб дарувати затишок і ніжність кожному дому. 
+            Вже з <strong>2009 року</strong> ми пропонуємо піжами, халати, білизну, дитячі комплекти, носочки, нічні сорочки, купальники та ще безліч приємних речей, 
+            що створюють комфорт для всієї родини.
+        </p>
+
+        <p class="about-text">
+            Ми віримо, що справжня краса починається з відчуття комфорту. Тому кожна річ у <strong>LadiesDream</strong> — це поєднання 
+            <em>м’якості, якості й любові до деталей</em>.
+        </p>
+
+        <p class="about-text">
+            <strong>Наші цінності:</strong>
+            <ul>
+                <li>🌸 <strong>Турбота про вас:</strong> Ми обираємо тільки перевірені матеріали, щоб ваша шкіра дихала.</li>
+                <li>🩷 <strong>Сімейний затишок:</strong> Для мами, тата й малюків — щоб кожен відчував комфорт.</li>
+                <li>✨ <strong>Стиль і ніжність:</strong> Наш одяг — не просто домашній, він підкреслює ваш настрій і характер.</li>
+            </ul>
+        </p>
+
+        <p class="about-text about-signature">
+            Дякуємо, що обираєте <strong>LadiesDream</strong> — місце, де комфорт стає стилем життя 💫
+        </p>
+    </div>
+</div>
+{% endblock %}

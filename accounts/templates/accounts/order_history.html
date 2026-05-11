@@ -1,0 +1,171 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Мої Замовлення{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'main/account_style.css' %}">
+
+<div class="account-container">
+    <h1 class="section-header">Мої Замовлення</h1>
+    
+    <div class="tabs-container">
+        <div class="profile-nav">
+            <a href="{% url 'accounts:profile' %}" class="nav-item">
+                Профіль
+            </a>
+            <a href="{% url 'accounts:order_history' %}" class="nav-item active">
+                Мої Замовлення
+            </a>
+        </div>
+
+        <div class="content-panel">
+            {% if orders %}
+                {% for order in orders %}
+                    <div class="order-card">
+                        <div class="order-header">
+                            <span class="order-number">Замовлення №{{ order.id }}</span>
+                            <span class="order-date">{{ order.created|date:"d.m.Y H:i" }}</span>
+                            <span class="order-status {% if order.paid %}paid{% else %}unpaid{% endif %}">
+                                Статус: {% if order.paid %}Оплачено{% else %}Очікує оплати{% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="order-body">
+                            <ul class="order-items-list-history">
+                                {% for item in order.items.all %}
+                                <li class="item-history">
+                                    <span class="item-product-name">{{ item.product.name }}</span>
+                                    <span class="item-quantity">Кіл-ть: {{ item.quantity }}</span>
+                                    <span class="item-price">Вартість: {{ item.get_cost }} грн</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <div class="order-footer">
+                            <span class="order-total">
+                               Загальна сума: **{{ order.get_total_cost }} грн**
+                            </span>
+    
+                            {% if not order.paid %}
+                                <a href="{% url 'orders:payment_start' order.id %}" class="btn btn-sm btn-warning ml-3">
+                                   Оплатити (LiqPay)
+                                </a>
+                            {% else %}
+                                <span class="text-success small ml-3">Оплачено</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>Ви ще не зробили жодного замовлення.</p>
+                    <a href="{% url 'main:product-list' %}" class="pink-button">Перейти до покупок</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+
+.order-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.order-number {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.order-date {
+    font-size: 0.9em;
+    color: #888;
+}
+
+.order-status {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.order-status.paid {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.order-status.unpaid {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.order-body {
+    padding: 15px 20px;
+}
+
+.order-items-list-history {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.item-history {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95em;
+    padding: 5px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+.item-history:last-child {
+    border-bottom: none;
+}
+
+.item-price {
+    font-weight: 600;
+}
+
+.order-footer {
+    padding: 10px 20px;
+    background-color: #f8f8f8;
+    border-top: 1px solid #e0e0e0;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    text-align: right;
+}
+
+.order-total {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: var(--dark-gray);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+}
+</style>
+{% endblock %}

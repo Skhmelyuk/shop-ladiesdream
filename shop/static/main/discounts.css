@@ -1,0 +1,140 @@
+:root {
+    --pink: #ff85b3;
+    --light-pink: #ffe6ef;
+    --dark-pink: #ff5f9e;
+    --white: #fff;
+    --gray: #777;
+    --border: #f8c1d8;
+    --radius: 12px;
+}
+
+/* ==================== Загальні ==================== */
+body {
+    background-color: var(--light-pink);
+    font-family: 'Poppins', sans-serif;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.text-pink {
+    color: #f497c2;
+}
+
+/* ==================== Форми ==================== */
+.discount-form,
+.promocode-form {
+    background-color: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    box-shadow: 0 8px 16px rgba(255, 143, 178, 0.2);
+    transition: all 0.3s ease;
+}
+
+.discount-form:hover,
+.promocode-form:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 20px rgba(255, 90, 140, 0.25);
+}
+
+.discount-form-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.discount-form .form-group,
+.promocode-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+input,
+select,
+textarea {
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    box-shadow: none;
+    transition: 0.3s ease;
+    padding: 10px 12px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--dark-pink);
+    box-shadow: 0 0 6px rgba(255, 105, 180, 0.3);
+}
+
+.btn-pink {
+    background-color: #f8c1d8;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: 10px 20px;
+}
+
+.btn-pink:hover {
+    background-color: #f497c2;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(248, 193, 216, 0.5);
+}
+
+.btn-pink:active {
+    transform: scale(0.97);
+}
+
+.table-pink {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #fff0f6;
+    border-radius: 10px;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.table-pink th {
+    background: #f8c1d8;
+    color: #6b0e44;
+    text-align: center;
+    padding: 12px;
+    font-weight: 600;
+}
+
+.table-pink td {
+    padding: 10px 12px;
+    text-align: center;
+    border-bottom: 1px solid #f3a9c0;
+}
+
+.table-pink tr:hover {
+    background-color: #ffe3ef;
+}
+
+.alert-pink {
+    background-color: #fff0f5;
+    color: #f497c2;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .discount-form, .promocode-form {
+        padding: 1.5rem;
+    }
+
+    .apply-promocode {
+        flex-direction: column;
+    }
+
+    .btn-pink {
+        width: 100%;
+    }
+}

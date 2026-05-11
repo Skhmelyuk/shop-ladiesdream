@@ -1,0 +1,440 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load math_filters %}
+{% load shop_tags %}
+{% load shop_filters %}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{% static 'main/style.css' %}">
+{% block sidebar %}
+<form class="sf-form" action="{% url 'main:product-list' %}" method="get" id="sidebarFilterForm">
+
+  <!-- ── ЗАГОЛОВОК ── -->
+  <div class="sf-header">
+    <span class="sf-title"><i class="fas fa-sliders-h"></i> Фільтри</span>
+    <a href="{% url 'main:product-list' %}" class="sf-reset" title="Скинути всі фільтри">
+      <i class="fas fa-undo"></i>
+    </a>
+  </div>
+
+  <!-- ── ВИРОБНИКИ ── -->
+  {% if suppliers %}
+  <div class="sf-section">
+    <button type="button" class="sf-section-toggle" onclick="sfToggle(this)">
+      <span><i class="fas fa-industry"></i> Виробники</span>
+      <i class="fas fa-chevron-up sf-chevron"></i>
+    </button>
+    <div class="sf-section-body">
+      {% for supplier in suppliers %}
+      <label class="sf-toggle-row">
+        <span class="sf-toggle-label">{{ supplier.name }}</span>
+        <span class="sf-switch">
+          <input type="checkbox" name="supplier" value="{{ supplier.name }}"
+                 onchange="sfUpdateCount()"
+                 {% if supplier.name in selected_suppliers %}checked{% endif %}>
+          <span class="sf-slider"></span>
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── КАТЕГОРІЇ ── -->
+  {% if categories %}
+  <div class="sf-section">
+    <button type="button" class="sf-section-toggle" onclick="sfToggle(this)">
+      <span><i class="fas fa-tag"></i> Категорії</span>
+      <i class="fas fa-chevron-up sf-chevron"></i>
+    </button>
+    <div class="sf-section-body">
+      {% for category in categories %}
+      <label class="sf-toggle-row">
+        <span class="sf-toggle-label">{{ category.name }}</span>
+        <span class="sf-switch">
+          <input type="checkbox" name="category" value="{{ category.name }}"
+                 onchange="sfUpdateCount()"
+                 {% if category.name in selected_categories %}checked{% endif %}>
+          <span class="sf-slider"></span>
+        </span>
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── КНОПКА ЗАСТОСУВАТИ ── -->
+  <div class="sf-footer">
+    <button type="submit" class="sf-apply-btn" id="sfApplyBtn">
+      <i class="fas fa-check"></i>
+      <span>Застосувати</span>
+      <span class="sf-count-badge" id="sfCountBadge" style="display:none">0</span>
+    </button>
+  </div>
+
+</form>
+{% endblock %}
+
+{% block content %}
+<h2 class="section-header">Каталог товарів</h2>
+
+<div class="main-content">
+    {% if selected_category or selected_supplier %}
+        <div class="active-filters-bar">
+            <span class="active-filters-label">
+                <i class="fas fa-filter"></i> Активні фільтри:
+            </span>
+            <div class="active-filters-chips">
+                {% if selected_supplier %}
+                    <span class="filter-chip filter-chip--supplier">
+                        <i class="fas fa-industry"></i>
+                        <span>{{ selected_supplier }}</span>
+                        <a href="?{% if selected_category %}category={{ selected_category }}{% endif %}"
+                           class="filter-chip__remove" title="Прибрати фільтр">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                {% endif %}
+                {% if selected_category %}
+                    <span class="filter-chip filter-chip--category">
+                        <i class="fas fa-tag"></i>
+                        <span>{{ selected_category }}</span>
+                        <a href="?{% if selected_supplier %}supplier={{ selected_supplier }}{% endif %}"
+                           class="filter-chip__remove" title="Прибрати фільтр">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                {% endif %}
+                <a href="{% url 'main:product-list' %}" class="filter-chip-reset">
+                    <i class="fas fa-times-circle"></i> Скинути всі
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="get" class="search-form">
+        <label for="q">Пошук:</label>
+        <input type="text" name="q" id="q" value="{{ request.GET.q }}" placeholder="Пошук товарів...">
+        <button type="submit" class="btn-search">🔍</button>
+        <a href="{% url 'main:product-list' %}" class="btn-reset">Скинути</a>
+    </form>
+
+    <div class="sort-buttons">
+        <span>Сортувати за:</span>
+        <a href="?sort=price_asc" class="btn-sort {% if request.GET.sort == 'price_asc' %}active{% endif %}">Ціна ↑</a>
+        <a href="?sort=price_desc" class="btn-sort {% if request.GET.sort == 'price_desc' %}active{% endif %}">Ціна ↓</a>
+        <a href="?sort=views" class="btn-sort {% if request.GET.sort == 'views' %}active{% endif %}">Популярні</a>
+    </div>
+
+    <div class="product-list">
+        {% for product in page_obj %}
+            <div class="product-card">
+                <div class="product-card-image">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="product-badges">
+                        {% if product.discount_percent and product.discount_percent > 0 %}
+                            <div class="discount-badge">
+                                -{{ product.discount_percent }}%
+                            </div>
+                        {% endif %}
+                        {% if product.is_featured %}
+                            <div class="featured-badge">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="product-card-content">
+                    <h3 class="product-title">
+                        <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}">
+                            {{ product.name }}
+                        </a>
+                    </h3>
+
+                    <p class="product-description">
+                        {{ product.description|truncatewords:12 }}
+                    </p>
+                    
+                    <div class="product-meta">
+                        <div class="product-views">
+                            <i class="fas fa-eye"></i> {{ product.views }}
+                        </div>
+                    </div>
+
+                    <div class="product-price">
+                        {% if product.discount_percent and product.discount_percent > 0 %}
+                            <span class="old-price">{{ product.price|floatformat:2 }} грн</span>
+                            <span class="current-price">{{ product.get_discounted_price|floatformat:2 }} грн</span>
+                        {% else %}
+                            <span class="current-price">{{ product.price|floatformat:2 }} грн</span>
+                        {% endif %}
+                    </div>
+
+                    <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}" 
+                       class="btn-view-product">
+                        <i class="fas fa-search"></i>
+                        Переглянути товар
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🛍️</div>
+                <h3 class="empty-state-title">Товарів не знайдено</h3>
+                <p class="empty-state-text">Спробуйте змінити фільтри або пошуковий запит</p>
+                <a href="{% url 'main:product-list' %}" class="empty-state-btn">Показати всі товари</a>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+        <ul class="pagination-list">
+            {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}">«</a></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="active"><span>{{ num }}</span></li>
+                {% else %}
+                    <li><a href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}">»</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Модальне вікно для детального перегляду фото -->
+<div id="imageModal" class="image-modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeImageModal()">&times;</span>
+        <img id="modalImage" src="" alt="">
+        <div class="modal-info">
+            <h3 id="modalTitle"></h3>
+            <p id="modalDescription"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+function openImageModal(imageSrc, title, description) {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDescription = document.getElementById('modalDescription');
+    
+    modal.style.display = 'flex';
+    modalImg.src = imageSrc;
+    modalTitle.textContent = title;
+    modalDescription.textContent = description;
+    
+    // Блокуємо скрол боді
+    document.body.style.overflow = 'hidden';
+    
+    // Додаємо анімацію появи
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.remove('active');
+    
+    // Чекаємо завершення анімації перед хованням
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }, 300);
+}
+
+// Закриття модального вікна при кліку поза зображенням
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Закриття модального вікна при натисканні ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
+
+// Додаємо обробники кліків на всі зображення товарів
+document.addEventListener('DOMContentLoaded', function() {
+    const productImages = document.querySelectorAll('.product-card-image img');
+    
+    productImages.forEach(function(img) {
+        img.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productCard = this.closest('.product-card');
+            const title = productCard.querySelector('.product-title a').textContent;
+            const description = productCard.querySelector('.product-description').textContent;
+            
+            openImageModal(this.src, title, description);
+        });
+    });
+});
+</script>
+
+<style>
+.image-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-modal.active {
+    opacity: 1;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+#modalImage {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-info {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.modal-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.close-modal {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    opacity: 0.7;
+}
+
+/* Адаптивність для модального вікна */
+@media (max-width: 768px) {
+    .modal-content {
+        max-width: 95%;
+        max-height: 95%;
+    }
+    
+    #modalImage {
+        max-height: 60vh;
+    }
+    
+    .modal-info {
+        margin-top: 15px;
+        padding: 15px;
+        max-width: 90%;
+    }
+    
+    .modal-info h3 {
+        font-size: 1.1rem;
+    }
+    
+    .modal-info p {
+        font-size: 0.85rem;
+    }
+    
+    .close-modal {
+        top: -35px;
+        font-size: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-info {
+        margin-top: 10px;
+        padding: 12px;
+    }
+    
+    .modal-info h3 {
+        font-size: 1rem;
+    }
+    
+    .modal-info p {
+        font-size: 0.8rem;
+    }
+    
+    .close-modal {
+        top: -30px;
+        font-size: 30px;
+    }
+}
+</style>
+
+{% endblock %}

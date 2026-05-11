@@ -1,0 +1,116 @@
+.profile-panel {
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.profile-header-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.avatar-container {
+    margin-right: 30px;
+}
+
+.user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px; 
+    height: 80px;
+    border-radius: 50%;
+    background-color: #ffcdd2; 
+    color: #e91e63; 
+    font-size: 36px;
+    border: 3px solid #f06292; 
+    overflow: hidden; 
+}
+.user-avatar.real-image {
+    object-fit: cover; 
+    width: 80px;
+    height: 80px;
+}
+
+.user-details-list p {
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+    color: #4a4a4a;
+}
+
+.user-details-list strong {
+    font-weight: 600;
+    color: #880e4f;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    justify-content: flex-start;
+}
+
+.action-btn {
+    padding: 8px 15px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.primary-action {
+    background-color: #ff4081;
+    border: 1px solid #ff4081;
+    color: white;
+}
+
+.primary-action:hover {
+    background-color: #d81b60;
+    border-color: #d81b60;
+}
+
+.secondary-action {
+    background-color: transparent;
+    border: 1px solid #f06292;
+    color: #f06292;
+}
+
+.secondary-action:hover {
+    background-color: #fce4ec;
+    color: #e91e63;
+}
+
+.tabs-container {
+    margin-top: 20px; 
+}
+
+.profile-nav {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0; 
+}
+
+.nav-item {
+    padding: 10px 20px;
+    margin-right: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    color: #888;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-item.active {
+    color: #e91e63;
+    border-bottom-color: #e91e63;
+    background-color: #fff0f5;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.nav-item:not(.active):hover {
+    color: #e91e63;
+    background-color: #fce4ec;
+    border-bottom-color: #f06292;
+}

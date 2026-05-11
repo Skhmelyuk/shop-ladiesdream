@@ -1,0 +1,18 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'main/discounts.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="alert-pink">
+        <h3>✅ Збережено успішно!</h3>
+        <p class="mb-0">Ваша акція або промокод тепер активні 💗</p>
+    </div>
+    <div class="mt-4">
+        <a href="{% url 'admin:index' %}" class="btn btn-pink">Повернутися до адмінки</a>
+    </div>
+</div>
+{% endblock %}

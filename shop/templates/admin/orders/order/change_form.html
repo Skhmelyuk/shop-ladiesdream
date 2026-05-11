@@ -1,0 +1,260 @@
+{% extends "admin/change_form.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.order-form-section {
+    margin-top: 24px;
+    border: 1px solid #f8bbd0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.order-form-section h2 {
+    background: #fce4ec !important;
+    color: #c2185b !important;
+    font-size: 0.85rem !important;
+    padding: 8px 14px !important;
+    margin: 0 !important;
+    letter-spacing: 0.5px;
+}
+</style>
+{% endblock %}
+
+{% block content_title %}
+<h1 style="color:#c2185b; font-weight:800; margin-bottom:4px;">
+    📦 Замовлення #{{ original.id }}
+    <span style="font-size:0.85rem; font-weight:400; color:#aaa; margin-left:12px;">
+        {{ original.created|date:"d.m.Y H:i" }}
+    </span>
+</h1>
+{% endblock %}
+
+{% block form_top %}
+
+{% if original %}
+<style>
+.order-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0;
+}
+.order-card {
+    background: #fff;
+    border: 1px solid #f8bbd0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(233,30,99,0.06);
+}
+.order-card-header {
+    background: linear-gradient(90deg, #e91e8c, #ff69b4);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 10px 16px;
+}
+.order-card-body {
+    padding: 14px 16px;
+}
+.order-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #fce4ec;
+    font-size: 0.88rem;
+    gap: 12px;
+}
+.order-row:last-child { border-bottom: none; }
+.order-row-label { color: #888; flex-shrink: 0; }
+.order-row-value { color: #333; font-weight: 500; text-align: right; }
+
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0 10px;
+    font-size: 0.88rem;
+}
+.order-items-table th {
+    background: #fce4ec;
+    color: #c2185b;
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.order-items-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #fce4ec;
+    color: #444;
+}
+.order-items-table tr:last-child td { border-bottom: none; }
+.order-items-table tr:hover td { background: #fff0f5; }
+.order-items-table .total-row td {
+    font-weight: 700;
+    color: #e91e63;
+    border-top: 2px solid #f8bbd0;
+    background: #fff9fb;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+.paid-yes { background:#e8f5e9; color:#2e7d32; }
+.paid-no  { background:#fce4ec; color:#c2185b; }
+.status-new        { background:#e3f2fd; color:#1565c0; }
+.status-processing { background:#fff8e1; color:#f57f17; }
+.status-shipped    { background:#e8eaf6; color:#283593; }
+.status-delivered  { background:#e8f5e9; color:#2e7d32; }
+.status-cancelled  { background:#ffebee; color:#b71c1c; }
+
+.order-total-block {
+    background: linear-gradient(90deg, #fce4ec, #fff0f5);
+    border: 1px solid #f8bbd0;
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.order-total-label { color:#888; font-size:0.9rem; }
+.order-total-value { font-size:1.5rem; font-weight:800; color:#e91e63; }
+</style>
+
+<div class="order-detail-grid">
+
+    <div class="order-card">
+        <div class="order-card-header">👤 Клієнт</div>
+        <div class="order-card-body">
+            <div class="order-row">
+                <span class="order-row-label">Ім'я</span>
+                <span class="order-row-value">{{ original.first_name }} {{ original.last_name }}</span>
+            </div>
+            <div class="order-row">
+                <span class="order-row-label">Email</span>
+                <span class="order-row-value">
+                    <a href="mailto:{{ original.email }}" style="color:#e91e63;">{{ original.email }}</a>
+                </span>
+            </div>
+            <div class="order-row">
+                <span class="order-row-label">Телефон</span>
+                <span class="order-row-value">
+                    {% if original.phone %}
+                        <a href="tel:{{ original.phone }}" style="color:#e91e63;">{{ original.phone }}</a>
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+            {% if original.user %}
+            <div class="order-row">
+                <span class="order-row-label">Акаунт</span>
+                <span class="order-row-value">
+                    <a href="{% url 'admin:auth_user_change' original.user.id %}" style="color:#e91e63;">
+                        {{ original.user.username }}
+                    </a>
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="order-card">
+        <div class="order-card-header">🚚 Доставка і статус</div>
+        <div class="order-card-body">
+            <div class="order-row">
+                <span class="order-row-label">Місто</span>
+                <span class="order-row-value">{{ original.city|default:"—" }}</span>
+            </div>
+            <div class="order-row">
+                <span class="order-row-label">Адреса / Відділення</span>
+                <span class="order-row-value">{{ original.delivery_address|default:"—" }}</span>
+            </div>
+            <div class="order-row">
+                <span class="order-row-label">Спосіб доставки</span>
+                <span class="order-row-value">{{ original.get_delivery_type_display }}</span>
+            </div>
+            <div class="order-row">
+                <span class="order-row-label">Оплата</span>
+                <span class="order-row-value">
+                    {% if original.paid %}
+                        <span class="status-badge paid-yes">✓ Оплачено</span>
+                    {% else %}
+                        <span class="status-badge paid-no">✗ Не оплачено</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="order-row">
+                <span class="order-row-label">Статус</span>
+                <span class="order-row-value">
+                    <span class="status-badge status-{{ original.status }}">
+                        {{ original.get_status_display }}
+                    </span>
+                </span>
+            </div>
+            <div class="order-row">
+                <span class="order-row-label">Спосіб оплати</span>
+                <span class="order-row-value">{{ original.get_payment_method_display }}</span>
+            </div>
+            {% if original.promo_code %}
+            <div class="order-row">
+                <span class="order-row-label">Промокод</span>
+                <span class="order-row-value" style="color:#e91e63; font-weight:700;">{{ original.promo_code }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<div class="order-total-block">
+    <div>
+        <div class="order-total-label">Сума замовлення</div>
+        {% if original.discounted_amount %}
+        <div style="font-size:0.82rem; color:#888;">Знижка: −{{ original.discounted_amount|floatformat:2 }} грн</div>
+        {% endif %}
+    </div>
+    <div class="order-total-value">{{ original.get_total_cost|floatformat:2 }} грн</div>
+</div>
+
+<h3 style="color:#c2185b; font-weight:700; margin:0 0 8px;">🛍️ Позиції замовлення</h3>
+<table class="order-items-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Товар</th>
+            <th>Ціна</th>
+            <th>Кількість</th>
+            <th>Сума</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in original.items.all %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+                <a href="{% url 'admin:main_product_change' item.product.id %}" style="color:#e91e63; font-weight:600;">
+                    {{ item.product.name }}
+                </a>
+            </td>
+            <td>{{ item.price|floatformat:2 }} грн</td>
+            <td>{{ item.quantity }}</td>
+            <td style="font-weight:700;">{{ item.get_cost|floatformat:2 }} грн</td>
+        </tr>
+        {% endfor %}
+        <tr class="total-row">
+            <td colspan="4" style="text-align:right;">💰 До сплати:</td>
+            <td>{{ original.get_total_cost|floatformat:2 }} грн</td>
+        </tr>
+    </tbody>
+</table>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Реєстрація{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'main/register.css' %}">
+
+<div class="registration-page">
+    <div class="registration-card card shadow-lg">
+        <div class="card-header">
+            <h2 class="fw-bold mb-1">Реєстрація</h2>
+            <p class="small mb-0 text-light">Створіть новий акаунт</p>
+        </div>
+
+        <div class="card-body p-4">
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    {% for field in form %}
+                        {% if field.name in ['first_name', 'last_name'] %}
+                            <div class="col-md-6 col-12 mb-3">
+                        {% else %}
+                            <div class="col-12 mb-3">
+                        {% endif %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">
+                                    {{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ field|add_class:"form-control" }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in field.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-register text-white fw-bold py-2">Зареєструватися</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card-footer text-center bg-light">
+            <p class="mb-0 text-muted">
+                Вже маєте акаунт? <a href="{% url 'accounts:login' %}">Увійти</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'main/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block title %}Додати відгук{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <h2 class="review-title">💬 Додати відгук до: <span>{{ product.name }}</span></h2>
+    <p class="review-subtitle">Залишайте свій чесний відгук, щоб допомогти іншим покупцям 💗</p>
+
+    <form method="post" class="review-form">
+        {% csrf_token %}
+        {{ form|crispy }}
+
+        <div class="review-buttons">
+            <button type="submit" class="btn-submit">💖 Відправити відгук</button>
+            <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}" class="btn-cancel">Скасувати</a>
+        </div>
+    </form>
+</div>
+
+<style>
+
+.review-container {
+    max-width: 650px;
+    margin: 50px auto;
+    background: #fff5f7;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 6px 20px rgba(255, 182, 193, 0.3);
+    font-family: 'Poppins', sans-serif;
+    color: #444;
+}
+
+.review-title {
+    text-align: center;
+    font-size: 26px;
+    color: #e75480;
+    margin-bottom: 10px;
+}
+
+.review-title span {
+    color: #ff6699;
+    font-weight: 600;
+}
+
+.review-subtitle {
+    text-align: center;
+    font-size: 16px;
+    color: #777;
+    margin-bottom: 25px;
+}
+
+.review-form input[type="text"],
+.review-form textarea,
+.review-form select {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    border: 1px solid #ffc2d1;
+    border-radius: 10px;
+    background: #fff;
+    transition: 0.2s;
+    font-size: 15px;
+}
+
+.review-form input:focus,
+.review-form textarea:focus,
+.review-form select:focus {
+    border-color: #ff85a2;
+    box-shadow: 0 0 6px rgba(255, 170, 200, 0.6);
+    outline: none;
+}
+
+.review-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #ff8fab, #ffb6c1);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    background: linear-gradient(135deg, #ff6b9c, #ff94b5);
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(255, 140, 180, 0.4);
+}
+
+.btn-cancel {
+    text-decoration: none;
+    color: #ff6b81;
+    font-weight: 500;
+    padding: 12px 30px;
+    border: 1px solid #ffb3c6;
+    border-radius: 25px;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: #ffe4ec;
+    color: #e75480;
+    box-shadow: 0 3px 8px rgba(255, 182, 193, 0.4);
+}
+</style>
+{% endblock %}

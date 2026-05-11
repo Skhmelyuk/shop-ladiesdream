@@ -1,0 +1,23 @@
+
+{% with q_param=search_query|urlencode %}
+<div class="sort-buttons">
+    <span>Сортувати:</span>
+    <a href="?sort=new{% if q_param %}&q={{ q_param }}{% endif %}" 
+       class="btn-sort {% if current_sort == 'new' %}active{% endif %}">Спочатку нові</a>
+       
+    <a href="?sort=old{% if q_param %}&q={{ q_param }}{% endif %}" 
+       class="btn-sort {% if current_sort == 'old' %}active{% endif %}">Спочатку старі</a>
+       
+    <a href="?sort=popular{% if q_param %}&q={{ q_param }}{% endif %}" 
+       class="btn-sort {% if current_sort == 'popular' %}active{% endif %}">Популярні</a>
+       
+    <a href="?sort=price_low{% if q_param %}&q={{ q_param }}{% endif %}" 
+       class="btn-sort {% if current_sort == 'price_low' %}active{% endif %}">Від дешевих</a>
+       
+    <a href="?sort=price_high{% if q_param %}&q={{ q_param }}{% endif %}" 
+       class="btn-sort {% if current_sort == 'price_high' %}active{% endif %}">Від дорогих</a>
+       
+    <a href="?sort=name{% if q_param %}&q={{ q_param }}{% endif %}" 
+       class="btn-sort {% if current_sort == 'name' %}active{% endif %}">За назвою (А-Я)</a>
+</div>
+{% endwith %}

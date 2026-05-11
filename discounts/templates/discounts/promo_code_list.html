@@ -1,0 +1,82 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'main/discounts.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="shadow-sm p-5" style="background-color: #fff; border: 2px solid #f8c1d8; border-radius: 12px;">
+        <h2 class="text-center mb-4 text-pink">🩷 Список промокодів</h2>
+
+        <form method="get" class="promo-filter mb-4 text-center">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="🔍 Пошук за кодом..." class="form-control d-inline-block w-50">
+            <select name="status" class="form-select d-inline-block w-auto ms-2">
+                <option value="">Усі</option>
+                <option value="active" {% if request.GET.status == "active" %}selected{% endif %}>Активні</option>
+                <option value="inactive" {% if request.GET.status == "inactive" %}selected{% endif %}>Неактивні</option>
+            </select>
+            <button type="submit" class="btn btn-pink ms-2">Фільтрувати</button>
+        </form>
+
+        {% if promo_codes %}
+        <table class="table-pink">
+            <thead>
+                <tr>
+                    <th>Код</th>
+                    <th>Тип</th>
+                    <th>Значення</th>
+                    <th>Період дії</th>
+                    <th>Використано</th>
+                    <th>Статус</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promo in promo_codes %}
+                <tr>
+                    <td class="fw-bold">{{ promo.code }}</td>
+                    <td>
+                        {% if promo.discount_type == 'percentage' %}
+                            <span class="badge bg-pink-light">%</span>
+                        {% elif promo.discount_type == 'fixed' %}
+                            <span class="badge bg-pink-light">₴</span>
+                        {% elif promo.discount_type == 'free_shipping' %}
+                            <span class="badge bg-pink-light">🚚</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if promo.discount_type == 'percentage' %}
+                            {{ promo.value }}%
+                        {% elif promo.discount_type == 'fixed' %}
+                            {{ promo.value }} грн
+                        {% elif promo.discount_type == 'free_shipping' %}
+                            Безкоштовна доставка
+                        {% endif %}
+                    </td>
+                    <td>{{ promo.start_date|date:"d.m.Y" }} — {{ promo.end_date|date:"d.m.Y" }}</td>
+                    <td>{{ promo.used_count }}{% if promo.usage_limit %}/{{ promo.usage_limit }}{% endif %}</td>
+                    <td>
+                        {% if promo.is_valid %}
+                            <span class="status-dot active"></span> Активний
+                        {% else %}
+                            <span class="status-dot inactive"></span> Неактивний
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'discounts:promo_code_stats' promo.id %}" class="btn btn-sm btn-outline-pink">📊 Статистика</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="alert-pink text-center">😔 Поки немає промокодів.</div>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{% url 'discounts:create_promo_code' %}" class="btn btn-pink px-4 py-2">➕ Створити новий промокод</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

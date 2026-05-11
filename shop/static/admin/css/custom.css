@@ -1,0 +1,309 @@
+/* ============================================================
+   LadiesDream — Custom Django Admin Theme
+   Рожева тема під стиль сайту — завжди світла
+   ============================================================ */
+
+:root {
+    color-scheme: light only;
+}
+
+/* --- Приховати бічну панель --- */
+#nav-sidebar,
+.toggle-nav-sidebar,
+#toggle-nav-sidebar {
+    display: none !important;
+}
+
+#main {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+#content-start {
+    padding-left: 0 !important;
+}
+
+.main > #nav-sidebar + .content,
+.main.shifted > #nav-sidebar + .content {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+}
+
+.dashboard #content {
+    width: auto !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+.dashboard #content-main {
+    float: none !important;
+    width: 100% !important;
+}
+
+/* --- Заголовок --- */
+#header {
+    background: linear-gradient(135deg, #e91e8c 0%, #ff69b4 100%);
+    box-shadow: 0 2px 10px rgba(233, 30, 99, 0.4);
+}
+
+#header a:link, #header a:visited {
+    color: #fff;
+}
+
+#branding h1 {
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+#branding h1 a:link, #branding h1 a:visited {
+    color: #fff;
+}
+
+#user-tools {
+    color: rgba(255,255,255,0.9);
+}
+
+#user-tools a {
+    color: #fff;
+    border-bottom: 1px dotted rgba(255,255,255,0.5);
+}
+
+#user-tools a:hover {
+    color: #ffe0f0;
+    border-bottom-color: #fff;
+}
+
+/* --- Навігація (breadcrumbs) --- */
+div.breadcrumbs {
+    background: #fce4ec;
+    color: #c2185b;
+    border-bottom: 1px solid #f8bbd0;
+}
+
+div.breadcrumbs a {
+    color: #e91e63;
+}
+
+div.breadcrumbs a:hover {
+    color: #c2185b;
+}
+
+/* --- Sidebar навігація --- */
+#nav-sidebar {
+    background: linear-gradient(160deg, #fff0f6, #fff);
+    border-right: 1px solid #f8bbd0;
+}
+
+#nav-sidebar .current-app .section:link,
+#nav-sidebar .current-app .section:visited {
+    color: #e91e63;
+}
+
+.toggle-nav-sidebar {
+    border-color: #f8bbd0;
+    color: #e91e63;
+}
+
+/* --- Головне меню моделей --- */
+#content-main .module h2,
+#content-main .module caption {
+    background: linear-gradient(90deg, #e91e8c, #ff69b4);
+    color: #fff;
+}
+
+.module h2, .module caption {
+    background: linear-gradient(90deg, #e91e8c, #ff69b4);
+    color: #fff;
+}
+
+.module table td a:link,
+.module table td a:visited {
+    color: #c2185b;
+}
+
+/* --- Кнопки --- */
+.button, input[type=submit], input[type=button],
+.submit-row input, a.button,
+#changelist-search input[type=submit],
+.actions button[type=submit],
+.actions select + button {
+    background: linear-gradient(90deg, #e91e8c, #ff69b4) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover,
+#changelist-search input[type=submit]:hover,
+.actions button[type=submit]:hover {
+    opacity: 0.88;
+    background: linear-gradient(90deg, #c2185b, #e91e8c) !important;
+    color: #fff !important;
+}
+
+.button.default, input[type=submit].default {
+    background: linear-gradient(90deg, #c2185b, #e91e8c);
+}
+
+a.deletelink, .deletelink {
+    background: #e53935;
+    color: #fff !important;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-weight: 600;
+}
+
+a.deletelink:hover {
+    background: #b71c1c;
+    color: #fff;
+}
+
+/* --- Submit row --- */
+.submit-row {
+    background: #fce4ec;
+    border-top: 1px solid #f8bbd0;
+    border-radius: 0 0 8px 8px;
+}
+
+/* --- Таблиці --- */
+#result_list thead th {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+#result_list thead th a:link,
+#result_list thead th a:visited {
+    color: #c2185b;
+}
+
+#result_list tr.selected td, #result_list tr.selected th {
+    background: #ffe0f0;
+}
+
+#result_list tbody tr:hover td,
+#result_list tbody tr:hover th {
+    background: #fce4ec;
+}
+
+/* --- Фільтри --- */
+#changelist-filter {
+    background: #fff0f6;
+    border-left: 1px solid #f8bbd0;
+}
+
+#changelist-filter h2 {
+    background: linear-gradient(90deg, #e91e8c, #ff69b4);
+    color: #fff;
+}
+
+#changelist-filter h3 {
+    color: #c2185b;
+    border-bottom: 1px solid #f8bbd0;
+}
+
+#changelist-filter ul li a:link,
+#changelist-filter ul li a:visited {
+    color: #555;
+}
+
+#changelist-filter ul li.selected a {
+    color: #e91e63;
+    font-weight: 700;
+}
+
+/* --- Форми --- */
+.form-row label {
+    color: #555;
+    font-weight: 600;
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+    border-color: #ff69b4;
+    box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.2);
+    outline: none;
+}
+
+fieldset.module {
+    border: 1px solid #f8bbd0;
+    border-radius: 8px;
+}
+
+fieldset.module h2 {
+    border-radius: 6px 6px 0 0;
+}
+
+/* --- Пагінація --- */
+.paginator a:link, .paginator a:visited {
+    color: #e91e63;
+}
+
+.paginator .this-page {
+    background: #e91e63;
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px 8px;
+}
+
+/* --- Search --- */
+#toolbar form input[type=text] {
+    border: 1px solid #f8bbd0;
+    border-radius: 6px 0 0 6px;
+}
+
+#toolbar form input[type=text]:focus {
+    border-color: #ff69b4;
+    box-shadow: 0 0 0 3px rgba(255,105,180,0.15);
+    outline: none;
+}
+
+/* --- Messages --- */
+ul.messagelist li {
+    border-radius: 6px;
+}
+
+ul.messagelist li.success {
+    background-color: #fce4ec;
+    color: #c2185b;
+    border: 1px solid #f8bbd0;
+}
+
+/* --- Загальний фон --- */
+body {
+    background: #fdf2f8;
+    color: #333;
+}
+
+#content {
+    background: #fff;
+}
+
+/* --- Колонки об'єктів --- */
+.object-tools a {
+    background: linear-gradient(90deg, #e91e8c, #ff69b4);
+    color: #fff !important;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.object-tools a:hover {
+    opacity: 0.85;
+}
+
+/* --- Inline --- */
+.inline-group h2 {
+    background: linear-gradient(90deg, #f06292, #ff80ab);
+    color: #fff;
+}
+
+.inline-group .tabular .form-row:hover {
+    background: #fce4ec;
+}

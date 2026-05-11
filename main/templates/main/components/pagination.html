@@ -1,0 +1,41 @@
+
+{% if products.has_other_pages %}
+<nav class="pagination">
+    <ul class="pagination-list">
+        
+        {% if products.has_previous %}
+            <li>
+                <a href="?page={{ products.previous_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="page-arrow">
+                    &laquo; Попередня
+                </a>
+            </li>
+        {% else %}
+            <li class="disabled"><span class="page-arrow">&laquo; Попередня</span></li>
+        {% endif %}
+
+        {% for num in products.paginator.page_range %}
+            {% if products.number == num %}
+                <li class="active"><span class="page-num">{{ num }}</span></li>
+            {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                <li>
+                    <a href="?page={{ num }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="page-num">
+                        {{ num }}
+                    </a>
+                </li>
+            {% elif num == products.number|add:'-3' or num == products.number|add:'3' %}
+                 <li><span class="page-dots">...</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if products.has_next %}
+            <li>
+                <a href="?page={{ products.next_page_number }}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="page-arrow">
+                    Наступна &raquo;
+                </a>
+            </li>
+        {% else %}
+            <li class="disabled"><span class="page-arrow">Наступна &raquo;</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

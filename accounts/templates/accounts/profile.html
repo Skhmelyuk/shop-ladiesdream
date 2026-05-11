@@ -1,0 +1,138 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Профіль користувача{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'main/account_style.css' %}">
+<link rel="stylesheet" href="{% static 'main/profile_styles.css' %}"> <div class="account-container">
+    <h1 class="section-header">Профіль користувача</h1>
+    
+    <div class="tabs-container">
+        <div class="profile-nav">
+            <a href="{% url 'accounts:profile' %}" class="nav-item active">
+                Профіль
+            </a>
+            <a href="{% url 'accounts:order_history' %}" class="nav-item">
+                Мої Замовлення
+            </a>
+        </div>
+
+        <div class="content-panel profile-panel">
+            
+            <div class="profile-header-info">
+                <div class="avatar-container">
+                  {% if user.profile.avatar %}
+                     <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }} Avatar" class="user-avatar real-image">
+                  {% else %}
+                     <span class="user-avatar"><i class="fas fa-user"></i></span>
+                  {% endif %}
+                </div>
+                
+                <div class="user-details-list">
+                    <h2>{{ user.first_name }} {{ user.last_name }} {% if not user.first_name and not user.last_name %}{{ user.username }}{% endif %}</h2>
+                    <p><strong>Логін:</strong> {{ user.username }}</p>
+                    <p><strong>Email:</strong> {% if user.email %}{{ user.email }}{% else %}Не вказано{% endif %}</p>
+                    {% if user.profile.location %}<p><strong>Місто:</strong> {{ user.profile.location }}</p>{% endif %}
+                    {% if user.profile.birth_date %}<p><strong>Дата народження:</strong> {{ user.profile.birth_date|date:"d.m.Y" }}</p>{% endif %}
+                    {% if user.profile.website %}<p><strong>Веб-сайт:</strong> <a href="{{ user.profile.website }}" target="_blank">{{ user.profile.website }}</a></p>{% endif %}
+                    {% if user.profile.bio %}<p><strong>Про себе:</strong> {{ user.profile.bio }}</p>{% endif %}
+                </div>
+            </div>
+
+            <hr>
+            
+            <div class="profile-actions" style="margin-bottom: 20px;">
+                <button type="button" class="btn btn-sm action-btn primary-action" onclick="document.getElementById('edit-profile-section').style.display='block'">
+                    <i class="fas fa-edit"></i> Редагувати профіль
+                </button>
+
+                <a href="{% url 'main:product-list' %}" class="btn btn-sm action-btn secondary-action">
+                    <i class="fas fa-shopping-bag"></i> В магазин
+                </a>
+                
+                <a href="{% url 'account_logout' %}" class="btn btn-sm action-btn" style="background-color: #f44336; color: white;">
+                  <i class="fas fa-sign-out-alt"></i> Вийти
+                </a>
+            </div>
+
+            <!-- Форма редагування профілю (прихована за замовчуванням) -->
+            <div id="edit-profile-section" style="display: none; background: #f9fafb; padding: 20px; border-radius: 12px; margin-top: 20px; border: 1px solid #e5e7eb;">
+                <h3 style="margin-top: 0; color: #1f2937; margin-bottom: 15px;">Редагувати профіль</h3>
+                
+                {% if u_form.errors or p_form.errors %}
+                <div class="error-message" style="background: #fee2e2; color: #ef4444; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                    Будь ласка, виправте помилки у формі нижче.
+                </div>
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data" class="profile-edit-form">
+                    {% csrf_token %}
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;">{{ u_form.first_name.label }}</label>
+                            {{ u_form.first_name }}
+                            {{ u_form.first_name.errors }}
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;">{{ u_form.last_name.label }}</label>
+                            {{ u_form.last_name }}
+                            {{ u_form.last_name.errors }}
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 5px;">{{ p_form.avatar.label }}</label>
+                        {{ p_form.avatar }}
+                        {{ p_form.avatar.errors }}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;">{{ p_form.birth_date.label }}</label>
+                            {{ p_form.birth_date }}
+                            {{ p_form.birth_date.errors }}
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;">{{ p_form.location.label }}</label>
+                            {{ p_form.location }}
+                            {{ p_form.location.errors }}
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 5px;">{{ p_form.website.label }}</label>
+                        {{ p_form.website }}
+                        {{ p_form.website.errors }}
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 5px;">{{ p_form.bio.label }}</label>
+                        {{ p_form.bio }}
+                        {{ p_form.bio.errors }}
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-sm action-btn primary-action">
+                            <i class="fas fa-save"></i> Зберегти зміни
+                        </button>
+                        <button type="button" class="btn btn-sm action-btn secondary-action" onclick="document.getElementById('edit-profile-section').style.display='none'">
+                            Скасувати
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <script>
+                // Якщо є помилки у формах, показувати блок редагування автоматично
+                {% if u_form.errors or p_form.errors %}
+                    document.getElementById('edit-profile-section').style.display='block';
+                {% endif %}
+            </script>
+
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

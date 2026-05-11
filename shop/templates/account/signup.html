@@ -1,0 +1,96 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block title %}Реєстрація — LadiesDream{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'main/register_new.css' %}">
+
+<div class="reg-page">
+
+  <!-- ===== ЛІВА ПАНЕЛЬ ===== -->
+  <div class="reg-left">
+    <div class="reg-left-content">
+      <div class="reg-brand">
+        <span class="reg-brand-icon">💎</span>
+        <span class="reg-brand-name">LadiesDream</span>
+      </div>
+      <h2 class="reg-left-title">Ласкаво просимо<br>до нашої спільноти</h2>
+      <p class="reg-left-sub">Зареєструйтесь і отримуйте ексклюзивні пропозиції, знижки та нові колекції першими.</p>
+
+      <div class="reg-features">
+        <div class="reg-feature-item">
+          <span class="reg-feature-icon">🚚</span>
+          <span>Безкоштовна доставка від 1000 грн</span>
+        </div>
+        <div class="reg-feature-item">
+          <span class="reg-feature-icon">🎁</span>
+          <span>Знижки для постійних клієнтів</span>
+        </div>
+        <div class="reg-feature-item">
+          <span class="reg-feature-icon">🔒</span>
+          <span>Захищені платежі та дані</span>
+        </div>
+      </div>
+
+      <!-- Декоративні кола -->
+      <div class="reg-deco reg-deco-1"></div>
+      <div class="reg-deco reg-deco-2"></div>
+      <div class="reg-deco reg-deco-3"></div>
+    </div>
+  </div>
+
+  <!-- ===== ПРАВА ПАНЕЛЬ (ФОРМА) ===== -->
+  <div class="reg-right">
+    <div class="reg-form-wrap">
+      <h1 class="reg-title">Створити акаунт</h1>
+      <p class="reg-subtitle">Заповніть дані нижче, щоб зареєструватися. Вам потрібно буде підтвердити свій email!</p>
+
+      {% if form.non_field_errors %}
+      <div class="reg-error-block">
+        {% for error in form.non_field_errors %}
+          <span>{{ error }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'account_signup' %}" enctype="multipart/form-data" class="reg-form">
+        {% csrf_token %}
+
+        <!-- Усі поля форми виводимо через цикл, щоб зберегти сумісність з allauth -->
+        {% for field in form %}
+          <div class="reg-field">
+            <label for="{{ field.id_for_label }}">
+              {{ field.label }}
+            </label>
+            {{ field }}
+            {% if field.errors %}<span class="reg-error">{{ field.errors.0 }}</span>{% endif %}
+            {% if field.help_text %}<small class="reg-hint">{{ field.help_text }}</small>{% endif %}
+          </div>
+        {% endfor %}
+
+        <button type="submit" class="reg-submit" style="margin-top: 15px;">
+          <i class="fas fa-envelope"></i> Зареєструватися та підтвердити Email
+        </button>
+      </form>
+
+      <p class="reg-login-link">
+        Вже маєте акаунт?
+        <a href="{% url 'account_login' %}">Увійти <i class="fas fa-arrow-right"></i></a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Додаємо CSS класи до полів allauth, оскільки вони генеруються автоматично
+document.addEventListener("DOMContentLoaded", function() {
+    const inputs = document.querySelectorAll('.reg-form input, .reg-form textarea');
+    inputs.forEach(input => {
+        if (input.type !== 'submit' && input.type !== 'hidden' && input.type !== 'checkbox') {
+            input.classList.add('w-full', 'px-4', 'py-2', 'border', 'border-gray-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-teal-500');
+        }
+    });
+});
+</script>
+
+{% endblock %}

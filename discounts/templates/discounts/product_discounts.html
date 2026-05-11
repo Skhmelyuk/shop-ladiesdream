@@ -1,0 +1,58 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'main/discounts.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="shadow-sm p-4" style="background-color: #fff; border-radius: 12px; border: 2px solid #f8c1d8;">
+        <h2 class="text-center mb-4 text-pink">🩷 Знижки для товару: {{ product.name }}</h2>
+
+        {% if discounts %}
+            <table class="table-pink">
+                <thead>
+                    <tr>
+                        <th>Відсоток</th>
+                        <th>Дата початку</th>
+                        <th>Дата завершення</th>
+                        <th>Активна</th>
+                        <th>Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for discount in discounts %}
+                    <tr>
+                        <td><span class="discount-badge">-{{ discount.percent }}%</span></td>
+                        <td>{{ discount.start_date|date:"d.m.Y" }}</td>
+                        <td>{{ discount.end_date|date:"d.m.Y" }}</td>
+                        <td>
+                            {% if discount.is_active %}
+                                ✅
+                            {% else %}
+                                ❌
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'discounts:edit_discount' discount.id %}" class="btn btn-sm btn-pink">Редагувати</a>
+                            <a href="{% url 'discounts:delete_discount' discount.id %}" class="btn btn-sm btn-outline-danger" 
+                               onclick="return confirm('Ви впевнені, що хочете видалити знижку?')">Видалити</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="alert-pink text-center">
+                💭 Поки немає знижок для цього товару.
+            </div>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="{% url 'discounts:add_discount' product.id %}" class="btn btn-pink px-4">
+                ➕ Додати ще одну знижку
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

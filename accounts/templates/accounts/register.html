@@ -1,0 +1,211 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block title %}Реєстрація — ShopDJ{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'main/register_new.css' %}">
+
+<div class="reg-page">
+
+  <!-- ===== ЛІВА ПАНЕЛЬ ===== -->
+  <div class="reg-left">
+    <div class="reg-left-content">
+      <div class="reg-brand">
+        <span class="reg-brand-icon">💎</span>
+        <span class="reg-brand-name">LadiesDream</span>
+      </div>
+      <h2 class="reg-left-title">Ласкаво просимо<br>до нашої спільноти</h2>
+      <p class="reg-left-sub">Зареєструйтесь і отримуйте ексклюзивні пропозиції, знижки та нові колекції першими.</p>
+
+      <div class="reg-features">
+        <div class="reg-feature-item">
+          <span class="reg-feature-icon">🚚</span>
+          <span>Безкоштовна доставка від 1000 грн</span>
+        </div>
+        <div class="reg-feature-item">
+          <span class="reg-feature-icon">🎁</span>
+          <span>Знижки для постійних клієнтів</span>
+        </div>
+        <div class="reg-feature-item">
+          <span class="reg-feature-icon">🔒</span>
+          <span>Захищені платежі та дані</span>
+        </div>
+      </div>
+
+      <!-- Декоративні кола -->
+      <div class="reg-deco reg-deco-1"></div>
+      <div class="reg-deco reg-deco-2"></div>
+      <div class="reg-deco reg-deco-3"></div>
+    </div>
+  </div>
+
+  <!-- ===== ПРАВА ПАНЕЛЬ (ФОРМА) ===== -->
+  <div class="reg-right">
+    <div class="reg-form-wrap">
+      <h1 class="reg-title">Створити акаунт</h1>
+      <p class="reg-subtitle">Заповніть дані нижче, щоб зареєструватися</p>
+
+      {% if form.non_field_errors %}
+      <div class="reg-error-block">
+        {% for error in form.non_field_errors %}
+          <span>{{ error }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" class="reg-form">
+        {% csrf_token %}
+
+        <!-- Ім'я та Прізвище в один рядок -->
+        <div class="reg-row-2">
+          <div class="reg-field">
+            <label for="{{ form.first_name.id_for_label }}">
+              <i class="fas fa-user"></i> Ім'я
+            </label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}<span class="reg-error">{{ form.first_name.errors.0 }}</span>{% endif %}
+          </div>
+          <div class="reg-field">
+            <label for="{{ form.last_name.id_for_label }}">
+              <i class="fas fa-user"></i> Прізвище
+            </label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}<span class="reg-error">{{ form.last_name.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- Логін -->
+        <div class="reg-field">
+          <label for="{{ form.username.id_for_label }}">
+            <i class="fas fa-at"></i> Логін
+          </label>
+          {{ form.username }}
+          {% if form.username.errors %}<span class="reg-error">{{ form.username.errors.0 }}</span>{% endif %}
+          {% if form.username.help_text %}<small class="reg-hint">{{ form.username.help_text }}</small>{% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="reg-field">
+          <label for="{{ form.email.id_for_label }}">
+            <i class="fas fa-envelope"></i> Email
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}<span class="reg-error">{{ form.email.errors.0 }}</span>{% endif %}
+        </div>
+
+        <!-- Пароль та підтвердження в один рядок -->
+        <div class="reg-row-2">
+          <div class="reg-field reg-field-pwd">
+            <label for="{{ form.password1.id_for_label }}">
+              <i class="fas fa-lock"></i> Пароль
+            </label>
+            <div class="reg-pwd-wrap">
+              {{ form.password1 }}
+              <button type="button" class="reg-eye" onclick="togglePwd('id_password1', this)" tabindex="-1">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            {% if form.password1.errors %}<span class="reg-error">{{ form.password1.errors.0 }}</span>{% endif %}
+            {% if form.password1.help_text %}<small class="reg-hint">{{ form.password1.help_text }}</small>{% endif %}
+          </div>
+          <div class="reg-field reg-field-pwd">
+            <label for="{{ form.password2.id_for_label }}">
+              <i class="fas fa-lock"></i> Підтвердження
+            </label>
+            <div class="reg-pwd-wrap">
+              {{ form.password2 }}
+              <button type="button" class="reg-eye" onclick="togglePwd('id_password2', this)" tabindex="-1">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            {% if form.password2.errors %}<span class="reg-error">{{ form.password2.errors.0 }}</span>{% endif %}
+          </div>
+        </div>
+
+        <!-- Додаткові поля (розгортаються) -->
+        <details class="reg-extra">
+          <summary class="reg-extra-toggle">
+            <i class="fas fa-sliders-h"></i> Додаткові дані (необов'язково)
+            <i class="fas fa-chevron-down reg-extra-arrow"></i>
+          </summary>
+          <div class="reg-extra-body">
+
+            <!-- Дата народження та місто -->
+            <div class="reg-row-2">
+              <div class="reg-field">
+                <label for="{{ form.birth_date.id_for_label }}">
+                  <i class="fas fa-calendar"></i> Дата народження
+                </label>
+                {{ form.birth_date }}
+                {% if form.birth_date.errors %}<span class="reg-error">{{ form.birth_date.errors.0 }}</span>{% endif %}
+              </div>
+              <div class="reg-field">
+                <label for="{{ form.location.id_for_label }}">
+                  <i class="fas fa-map-marker-alt"></i> Місто
+                </label>
+                {{ form.location }}
+                {% if form.location.errors %}<span class="reg-error">{{ form.location.errors.0 }}</span>{% endif %}
+              </div>
+            </div>
+
+            <!-- Веб-сайт -->
+            <div class="reg-field">
+              <label for="{{ form.website.id_for_label }}">
+                <i class="fas fa-globe"></i> Веб-сайт
+              </label>
+              {{ form.website }}
+              {% if form.website.errors %}<span class="reg-error">{{ form.website.errors.0 }}</span>{% endif %}
+            </div>
+
+            <!-- Аватар -->
+            <div class="reg-field">
+              <label for="{{ form.avatar.id_for_label }}">
+                <i class="fas fa-camera"></i> Фото профілю
+              </label>
+              <div class="reg-file-wrap">
+                {{ form.avatar }}
+                <span class="reg-file-label">Оберіть фото (JPG, PNG, до 5MB)</span>
+              </div>
+              {% if form.avatar.errors %}<span class="reg-error">{{ form.avatar.errors.0 }}</span>{% endif %}
+            </div>
+
+            <!-- Біографія -->
+            <div class="reg-field">
+              <label for="{{ form.bio.id_for_label }}">
+                <i class="fas fa-pen"></i> Про себе
+              </label>
+              {{ form.bio }}
+              {% if form.bio.errors %}<span class="reg-error">{{ form.bio.errors.0 }}</span>{% endif %}
+            </div>
+
+          </div>
+        </details>
+
+        <button type="submit" class="reg-submit">
+          <i class="fas fa-user-plus"></i> Зареєструватися
+        </button>
+      </form>
+
+      <p class="reg-login-link">
+        Вже маєте акаунт?
+        <a href="{% url 'accounts:login' %}">Увійти <i class="fas fa-arrow-right"></i></a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePwd(fieldId, btn) {
+  const inp = document.getElementById(fieldId);
+  const icon = btn.querySelector('i');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.classList.replace('fa-eye', 'fa-eye-slash');
+  } else {
+    inp.type = 'password';
+    icon.classList.replace('fa-eye-slash', 'fa-eye');
+  }
+}
+</script>
+
+{% endblock %}

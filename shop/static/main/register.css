@@ -1,0 +1,85 @@
+/* Фон сторінки */
+.registration-page {
+    background-image: url('../images/tekstura-fon.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Карточка форми */
+.registration-card {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Заголовок карточки */
+.card-header {
+    background: linear-gradient(90deg, #f9a8d4 0%, #f472b6 100%);
+    color: white;
+    text-align: center;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    padding: 1rem;
+}
+
+.form-group label {
+    font-weight: 600;
+}
+
+.form-control:focus {
+    border-color: #f472b6;
+    box-shadow: 0 0 0 0.25rem rgba(244, 114, 182, 0.25);
+}
+
+.btn-register {
+    border-radius: 0.5rem;
+    background-color: #ec4899;
+    border-color: #ec4899;
+    transition: all 0.2s ease;
+}
+
+.btn-register:hover {
+    background-color: #db2777;
+    border-color: #db2777;
+}
+
+/* Біографія textarea */
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Ряд для імені та прізвища */
+.row > .col-md-6 {
+    display: inline-block;
+    width: 48%;
+    margin-right: 4%;
+}
+
+.row > .col-md-6:last-child {
+    margin-right: 0;
+}
+
+@media (max-width: 768px) {
+    .row > .col-md-6 {
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+a {
+    color: #ec4899;
+}
+
+a:hover {
+    color: #db2777;
+    text-decoration: underline;
+}

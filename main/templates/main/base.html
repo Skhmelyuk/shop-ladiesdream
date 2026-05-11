@@ -1,0 +1,271 @@
+{% load static %}
+{% load shop_filters %}
+{% load shop_tags %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Інтернет-магазин{% endblock %}</title>
+    <link rel="icon" href="{% static 'main/favicon.ico' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="{% static 'main/style.css' %}" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="container top-bar-content">
+        <span class="scrolling-text" aria-hidden="true">
+            Постійні акції та знижки! При замовленні на 2000 грн — доставка безкоштовно!
+            15% знижки імениннику! ★ Постійні акції та знижки! При замовленні на 2000 грн — доставка безкоштовно!
+            15% знижки імениннику! ★
+        </span>
+    </div>
+</div>
+
+<header>
+    <div class="container">
+        <div class="main-nav">
+            <button class="filter-menu-toggle" id="filter-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>            
+            
+            <a href="{% url 'main:product-list' %}" class="logo-link">
+                <img src="{% static 'main/favicon.ico' %}" alt="LadiesDream Logo" class="header-logo">
+                <span class="site-title">LadiesDream</span>
+            </a>
+
+            <nav class="primary-nav">
+                <ul>
+                    <li><a href="{% url 'main:product-list' %}">Каталог</a></li>
+                    <li><a href="{% url 'main:about' %}">Про нас</a></li>
+                    <li><a href="{% url 'main:contact' %}">Контакти</a></li>
+                    <li>
+                        <a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                            Кошик
+                            {% with total_items=cart|length %}
+                                {% if total_items > 0 %}
+                                    <span class="cart-count">({{ total_items }})</span>
+                                {% endif %}
+                            {% endwith %}
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <nav class="user-nav">
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin:index' %}" class="btn-admin">Адмін панель</a>
+                    {% endif %}
+                    <a href="{% url 'accounts:profile' %}" class="btn-profile">Профіль</a>
+                    <a href="{% url 'account_logout' %}" class="btn-logout">Вийти</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="btn-login">Вхід</a>
+                    <a href="{% url 'account_signup' %}" class="btn-register">Реєстрація</a>
+                {% endif %}
+            </nav>
+        </div>
+
+        <div class="user-info-header">
+            <span>{% user_greeting user %}</span>
+            <span class="product-count">У каталозі: {% get_products_count %} товарів</span>
+        </div>
+    </div>
+</header>
+
+{% if messages %}
+<div class="toast-container">
+    {% for message in messages %}
+    <div class="toast toast-{{ message.tags }}">
+        <span class="toast-icon">🛒</span>
+        <span class="toast-text">{{ message }}</span>
+        <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">Фільтри</span>
+        <button class="sidebar-close" id="sidebar-close-btn">✕</button>
+    </div>
+    <div class="sidebar-body">
+    {% block sidebar %}
+    <form class="sf-form" action="{% url 'main:product-list' %}" method="get" id="sidebarFilterForm">
+
+      <!-- ── ЗАГОЛОВОК ── -->
+      <div class="sf-header">
+        <span class="sf-title"><i class="fas fa-sliders-h"></i> Фільтри</span>
+        <a href="{% url 'main:product-list' %}" class="sf-reset" title="Скинути всі фільтри">
+          <i class="fas fa-undo"></i>
+        </a>
+      </div>
+
+      <!-- ── ВИРОБНИКИ ── -->
+      {% if all_suppliers %}
+      <div class="sf-section">
+        <button type="button" class="sf-section-toggle" onclick="sfToggle(this)">
+          <span><i class="fas fa-industry"></i> Виробники</span>
+          <i class="fas fa-chevron-up sf-chevron"></i>
+        </button>
+        <div class="sf-section-body">
+          {% for supplier in all_suppliers %}
+          <label class="sf-toggle-row">
+            <span class="sf-toggle-label">{{ supplier.name }}</span>
+            <span class="sf-switch">
+              <input type="checkbox" name="supplier" value="{{ supplier.name }}"
+                     onchange="sfUpdateCount()"
+                     {% if supplier.name in global_selected_suppliers %}checked{% endif %}>
+              <span class="sf-slider"></span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── КАТЕГОРІЇ ── -->
+      {% if all_categories %}
+      <div class="sf-section">
+        <button type="button" class="sf-section-toggle" onclick="sfToggle(this)">
+          <span><i class="fas fa-tag"></i> Категорії</span>
+          <i class="fas fa-chevron-up sf-chevron"></i>
+        </button>
+        <div class="sf-section-body">
+          {% for cat in all_categories %}
+          <label class="sf-toggle-row">
+            <span class="sf-toggle-label">{{ cat.name }}</span>
+            <span class="sf-switch">
+              <input type="checkbox" name="category" value="{{ cat.name }}"
+                     onchange="sfUpdateCount()"
+                     {% if cat.name in global_selected_categories %}checked{% endif %}>
+              <span class="sf-slider"></span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── КНОПКА ЗАСТОСУВАТИ ── -->
+      <div class="sf-footer">
+        <button type="submit" class="sf-apply-btn" id="sfApplyBtn">
+          <i class="fas fa-check"></i>
+          <span>Застосувати</span>
+          <span class="sf-count-badge" id="sfCountBadge" style="display:none">0</span>
+        </button>
+      </div>
+
+    </form>
+    {% endblock %}
+    </div>
+</aside>
+
+<div class="page-wrapper">
+<main>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<footer>
+    <div class="container">
+        <p>© 2025 LadiesDream. Всі права захищені.</p>
+    </div>
+</footer>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebar = document.getElementById('sidebar');
+    const toggleButton = document.getElementById('filter-menu-toggle');
+    if (!sidebar || !toggleButton) return;
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('active');
+        document.body.classList.toggle('no-scroll');
+    }
+
+    toggleButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleSidebar();
+    });
+
+    const closeBtn = document.getElementById('sidebar-close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', toggleSidebar);
+    }
+
+    document.addEventListener('click', function(event) {
+        const isClickInsideSidebar = sidebar.contains(event.target);
+        const isClickOnToggleButton = toggleButton.contains(event.target);
+        if (sidebar.classList.contains('active') && !isClickInsideSidebar && !isClickOnToggleButton) {
+            toggleSidebar();
+        }
+    });
+
+    document.querySelectorAll('.toast').forEach(function(toast) {
+        setTimeout(function() {
+            toast.classList.add('toast-hide');
+            setTimeout(function() { toast.remove(); }, 400);
+        }, 3000);
+    });
+
+    window.toggleDropdown = function(id) {
+        const dropdown = document.getElementById(id);
+        if (dropdown) {
+            dropdown.classList.toggle('open');
+            const icon = dropdown.previousElementSibling.querySelector('i.fas');
+            if (icon) {
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            }
+        }
+    };
+});
+</script>
+
+<script>
+/* ── Sidebar Filter JS ── */
+
+// Підрахунок активних фільтрів і оновлення кнопки
+function sfUpdateCount() {
+    const checked = document.querySelectorAll('#sidebarFilterForm input[type="checkbox"]:checked').length;
+    const badge = document.getElementById('sfCountBadge');
+    if (!badge) return;
+    if (checked > 0) {
+        badge.textContent = checked;
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// Розгортання/згортання секції
+function sfToggle(btn) {
+    const body = btn.nextElementSibling;
+    const chevron = btn.querySelector('.sf-chevron');
+    if (!body) return;
+    body.classList.toggle('collapsed');
+    if (chevron) chevron.classList.toggle('collapsed');
+}
+
+// Ініціалізація при завантаженні
+document.addEventListener('DOMContentLoaded', function () {
+    // Виставляємо початкову висоту для анімації collapse
+    document.querySelectorAll('.sf-section-body').forEach(function(body) {
+        body.style.maxHeight = body.scrollHeight + 'px';
+    });
+
+    // Запускаємо лічильник одразу (якщо фільтри вже активні)
+    sfUpdateCount();
+});
+</script>
+
+</body>
+</html>

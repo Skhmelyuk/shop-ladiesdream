@@ -1,0 +1,18 @@
+<form method="GET" action="{% if category %}{{ category.get_absolute_url }}{% else %}{% url 'main:product-list' %}{% endif %}" class="search-form">
+    <input 
+        type="text" 
+        name="q" 
+        value="{{ search_query|default:'' }}" 
+        placeholder="Пошук товарів..."
+    >
+    
+    {% if current_sort != 'new' %}
+        <input type="hidden" name="sort" value="{{ current_sort }}">
+    {% endif %}
+
+    <button type="submit" class="btn-search">Пошук</button>
+    
+    {% if search_query %}
+        <a href="{% if category %}{{ category.get_absolute_url }}{% else %}{% url 'main:product-list' %}{% endif %}" class="btn-reset">Скинути</a>
+    {% endif %}
+</form>
