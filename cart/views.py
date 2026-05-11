@@ -96,6 +96,8 @@ def cart_add(request, product_id):
         )
         messages.success(request, f'Кількість товару "{product.name}" оновлено')
 
+    if getattr(request, 'htmx', False) and '/cart/' not in request.META.get('HTTP_HX_CURRENT_URL', ''):
+        return render(request, 'cart/partials/cart_badge.html', {'cart': cart})
     return redirect('cart:cart_detail')
 
 @require_POST
@@ -151,4 +153,6 @@ def cart_detail(request):
             item['available_stock'] = total_stock
             item['max_quantity'] = total_stock
   
+    if getattr(request, 'htmx', False):
+        return render(request, 'cart/partials/cart_content.html', {'cart': cart})
     return render(request, 'cart/detail.html', {'cart': cart})

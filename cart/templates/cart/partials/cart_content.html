@@ -1,0 +1,139 @@
+<div class="cart-container" id="cart-container" hx-boost="true" hx-target="#cart-container" hx-swap="outerHTML">
+    <h2 class="section-header">🛒 Ваш кошик</h2>
+    
+    {% if cart %}
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th class="col-photo">Фото</th>
+                    <th class="col-product">Товар</th>
+                    <th class="col-quantity">Кількість</th>
+                    <th class="col-price">Сума</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart %}
+                    <tr class="cart-item-row">
+                        <td class="cart-item-photo">
+                            <a href="{{ item.product.get_absolute_url }}">
+                                {% if item.variant_image %}
+                                    <img src="{{ item.variant_image }}" alt="{{ item.product.name }}" class="cart-item-image">
+                                {% elif item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-image">
+                                {% endif %}
+                            </a>
+                        </td>
+                        
+                        <td class="cart-item-info">
+                            <div class="item-details">
+                                <h3 class="item-name">
+                                    <a href="{{ item.product.get_absolute_url }}" class="item-link">
+                                        {{ item.product.name }}
+                                    </a>
+                                </h3>
+                                <div class="item-variants">
+                                    {% if item.color %}
+                                        <span class="variant-badge color-badge">
+                                            {{ item.color }}
+                                        </span>
+                                    {% endif %}
+                                    {% if item.size %}
+                                        <span class="variant-badge size-badge">
+                                            {{ item.size }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <td class="cart-item-quantity" x-data="{ qty: {{ item.quantity }}, maxQty: {{ item.available_stock|default:0 }} }">
+                            <form action="{% url 'cart:cart_add' item.product.id %}" method="post" class="quantity-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="color" value="{{ item.color }}">
+                                <input type="hidden" name="size" value="{{ item.size }}">
+                                <input type="hidden" name="override" value="1">
+                                 
+                                <div class="quantity-control">
+                                    <input type="number" 
+                                           name="quantity" 
+                                           x-model="qty"
+                                           @input="if(qty > maxQty) qty = maxQty; if(qty < 1) qty = 1"
+                                           min="1" 
+                                           :max="maxQty"
+                                           :disabled="maxQty === 0"
+                                           class="quantity-input">
+                                    <button type="submit" class="btn-update" 
+                                            :disabled="maxQty === 0 || qty == 0">
+                                        <i class="fas fa-sync"></i>
+                                    </button>
+                                </div>
+                                 
+                                {% if item.available_stock > 0 %}
+                                    <div class="stock-info available">
+                                        В наявності: {{ item.available_stock }} шт.
+                                    </div>
+                                {% else %}
+                                    <div class="stock-info unavailable">
+                                        Немає в наявності
+                                    </div>
+                                {% endif %}
+                            </form>
+                        </td>
+                        
+                        <td class="cart-item-price">
+                            <div class="price-actions">
+                                <div class="item-total-price">{{ item.total_price|floatformat:2 }} грн</div>
+                                <form action="{% url 'cart:cart_remove' item.product.id %}" method="post" class="remove-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="color" value="{{ item.color }}">
+                                    <input type="hidden" name="size" value="{{ item.size }}">
+                                    <button type="submit" class="btn-remove" title="Видалити">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="cart-summary-card">
+            <div class="cart-summary-content">
+                <div class="cart-summary-header">
+                    <h3 class="cart-summary-title">Підсумок замовлення</h3>
+                </div>
+                
+                <div class="cart-summary-details">
+                    <div class="summary-row">
+                        <span class="summary-label">Загальна сума:</span>
+                        <span class="summary-value">{{ cart.get_total_price|floatformat:2 }} грн</span>
+                    </div>
+                </div>
+                
+                <div class="cart-summary-actions">
+                    <a href="{% url 'main:product-list' %}" class="btn btn-outline-secondary btn-continue">
+                        <i class="fas fa-arrow-left me-2"></i>Продовжити покупки
+                    </a>
+                    <a href="{% url 'orders:order_create' %}" class="btn btn-pink btn-checkout" hx-boost="false">
+                        <i class="fas fa-shopping-bag me-2"></i>Оформити замовлення
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <div class="empty-cart-container">
+            <div class="empty-cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h3 class="empty-cart-title">Ваш кошик порожній</h3>
+            <p class="empty-cart-description">У кошику немає товарів. Перейдіть до каталогу, щоб додати товари.</p>
+            <a href="{% url 'main:product-list' %}" class="btn btn-pink">
+                <i class="fas fa-shopping-bag me-2"></i>Перейти до каталогу
+            </a>
+        </div>
+    {% endif %}
+    
+</div>
+{% include 'cart/partials/cart_badge.html' %}

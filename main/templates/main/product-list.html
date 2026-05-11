@@ -75,224 +75,22 @@
 {% endblock %}
 
 {% block content %}
-<h2 class="section-header">Каталог товарів</h2>
+<div x-data="{ modalOpen: false, modalImg: '', modalTitle: '', modalDesc: '' }">
+    <h2 class="section-header">Каталог товарів</h2>
 
-<div class="main-content">
-    {% if selected_category or selected_supplier %}
-        <div class="active-filters-bar">
-            <span class="active-filters-label">
-                <i class="fas fa-filter"></i> Активні фільтри:
-            </span>
-            <div class="active-filters-chips">
-                {% if selected_supplier %}
-                    <span class="filter-chip filter-chip--supplier">
-                        <i class="fas fa-industry"></i>
-                        <span>{{ selected_supplier }}</span>
-                        <a href="?{% if selected_category %}category={{ selected_category }}{% endif %}"
-                           class="filter-chip__remove" title="Прибрати фільтр">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    </span>
-                {% endif %}
-                {% if selected_category %}
-                    <span class="filter-chip filter-chip--category">
-                        <i class="fas fa-tag"></i>
-                        <span>{{ selected_category }}</span>
-                        <a href="?{% if selected_supplier %}supplier={{ selected_supplier }}{% endif %}"
-                           class="filter-chip__remove" title="Прибрати фільтр">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    </span>
-                {% endif %}
-                <a href="{% url 'main:product-list' %}" class="filter-chip-reset">
-                    <i class="fas fa-times-circle"></i> Скинути всі
-                </a>
-            </div>
-        </div>
-    {% endif %}
-
-    <form method="get" class="search-form">
-        <label for="q">Пошук:</label>
-        <input type="text" name="q" id="q" value="{{ request.GET.q }}" placeholder="Пошук товарів...">
-        <button type="submit" class="btn-search">🔍</button>
-        <a href="{% url 'main:product-list' %}" class="btn-reset">Скинути</a>
-    </form>
-
-    <div class="sort-buttons">
-        <span>Сортувати за:</span>
-        <a href="?sort=price_asc" class="btn-sort {% if request.GET.sort == 'price_asc' %}active{% endif %}">Ціна ↑</a>
-        <a href="?sort=price_desc" class="btn-sort {% if request.GET.sort == 'price_desc' %}active{% endif %}">Ціна ↓</a>
-        <a href="?sort=views" class="btn-sort {% if request.GET.sort == 'views' %}active{% endif %}">Популярні</a>
-    </div>
-
-    <div class="product-list">
-        {% for product in page_obj %}
-            <div class="product-card">
-                <div class="product-card-image">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                    {% else %}
-                        <div class="no-image-placeholder">
-                            <i class="fas fa-tshirt"></i>
-                        </div>
-                    {% endif %}
-                    
-                    <div class="product-badges">
-                        {% if product.discount_percent and product.discount_percent > 0 %}
-                            <div class="discount-badge">
-                                -{{ product.discount_percent }}%
-                            </div>
-                        {% endif %}
-                        {% if product.is_featured %}
-                            <div class="featured-badge">
-                                <i class="fas fa-star"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="product-card-content">
-                    <h3 class="product-title">
-                        <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}">
-                            {{ product.name }}
-                        </a>
-                    </h3>
-
-                    <p class="product-description">
-                        {{ product.description|truncatewords:12 }}
-                    </p>
-                    
-                    <div class="product-meta">
-                        <div class="product-views">
-                            <i class="fas fa-eye"></i> {{ product.views }}
-                        </div>
-                    </div>
-
-                    <div class="product-price">
-                        {% if product.discount_percent and product.discount_percent > 0 %}
-                            <span class="old-price">{{ product.price|floatformat:2 }} грн</span>
-                            <span class="current-price">{{ product.get_discounted_price|floatformat:2 }} грн</span>
-                        {% else %}
-                            <span class="current-price">{{ product.price|floatformat:2 }} грн</span>
-                        {% endif %}
-                    </div>
-
-                    <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}" 
-                       class="btn-view-product">
-                        <i class="fas fa-search"></i>
-                        Переглянути товар
-                    </a>
-                </div>
-            </div>
-        {% empty %}
-            <div class="empty-state">
-                <div class="empty-state-icon">🛍️</div>
-                <h3 class="empty-state-title">Товарів не знайдено</h3>
-                <p class="empty-state-text">Спробуйте змінити фільтри або пошуковий запит</p>
-                <a href="{% url 'main:product-list' %}" class="empty-state-btn">Показати всі товари</a>
-            </div>
-        {% endfor %}
-    </div>
-
-    {% if page_obj.paginator.num_pages > 1 %}
-    <div class="pagination">
-        <ul class="pagination-list">
-            {% if page_obj.has_previous %}
-                <li><a href="?page={{ page_obj.previous_page_number }}">«</a></li>
-            {% endif %}
-
-            {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                    <li class="active"><span>{{ num }}</span></li>
-                {% else %}
-                    <li><a href="?page={{ num }}">{{ num }}</a></li>
-                {% endif %}
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-                <li><a href="?page={{ page_obj.next_page_number }}">»</a></li>
-            {% endif %}
-        </ul>
-    </div>
-    {% endif %}
-</div>
+    {% include 'main/partials/product_grid.html' %}
 
 <!-- Модальне вікно для детального перегляду фото -->
-<div id="imageModal" class="image-modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeImageModal()">&times;</span>
-        <img id="modalImage" src="" alt="">
+<div class="image-modal" :class="{ 'active': modalOpen }" x-show="modalOpen" style="display: none;" @click.self="modalOpen = false" @keydown.window.escape="modalOpen = false" x-effect="document.body.style.overflow = modalOpen ? 'hidden' : ''">
+    <div class="modal-content" @click.stop x-show="modalOpen" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0">
+        <span class="close-modal" @click="modalOpen = false">&times;</span>
+        <img :src="modalImg" alt="">
         <div class="modal-info">
-            <h3 id="modalTitle"></h3>
-            <p id="modalDescription"></p>
+            <h3 x-text="modalTitle"></h3>
+            <p x-text="modalDesc"></p>
         </div>
     </div>
 </div>
-
-<script>
-function openImageModal(imageSrc, title, description) {
-    const modal = document.getElementById('imageModal');
-    const modalImg = document.getElementById('modalImage');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDescription = document.getElementById('modalDescription');
-    
-    modal.style.display = 'flex';
-    modalImg.src = imageSrc;
-    modalTitle.textContent = title;
-    modalDescription.textContent = description;
-    
-    // Блокуємо скрол боді
-    document.body.style.overflow = 'hidden';
-    
-    // Додаємо анімацію появи
-    setTimeout(() => {
-        modal.classList.add('active');
-    }, 10);
-}
-
-function closeImageModal() {
-    const modal = document.getElementById('imageModal');
-    modal.classList.remove('active');
-    
-    // Чекаємо завершення анімації перед хованням
-    setTimeout(() => {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }, 300);
-}
-
-// Закриття модального вікна при кліку поза зображенням
-document.getElementById('imageModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeImageModal();
-    }
-});
-
-// Закриття модального вікна при натисканні ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeImageModal();
-    }
-});
-
-// Додаємо обробники кліків на всі зображення товарів
-document.addEventListener('DOMContentLoaded', function() {
-    const productImages = document.querySelectorAll('.product-card-image img');
-    
-    productImages.forEach(function(img) {
-        img.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const productCard = this.closest('.product-card');
-            const title = productCard.querySelector('.product-title a').textContent;
-            const description = productCard.querySelector('.product-description').textContent;
-            
-            openImageModal(this.src, title, description);
-        });
-    });
-});
-</script>
 
 <style>
 .image-modal {
@@ -436,5 +234,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 </style>
-
+</div>
 {% endblock %}

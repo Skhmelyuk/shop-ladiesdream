@@ -125,7 +125,7 @@
       {% endif %}
 
       <!-- ФОРМА: РОЗМІР / КОЛІР / КІЛЬКІСТЬ / КОШИК -->
-      <form action="{% url 'cart:cart_add' product.id %}" method="post" class="pd-form">
+      <form action="{% url 'cart:cart_add' product.id %}" method="post" class="pd-form" hx-post="{% url 'cart:cart_add' product.id %}" hx-swap="none">
         {% csrf_token %}
         <input type="hidden" id="selected_size" name="selected_size">
         <input type="hidden" id="selected_color" name="selected_color">

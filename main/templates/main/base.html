@@ -12,8 +12,12 @@
     <link href="{% static 'main/style.css' %}" rel="stylesheet">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- HTMX & Alpine.js -->
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.8/dist/cdn.min.js"></script>
 </head>
-<body>
+<body x-data="{ sidebarOpen: false }" :class="{ 'no-scroll': sidebarOpen }">
 
 <div class="top-bar">
     <div class="container top-bar-content">
@@ -28,7 +32,7 @@
 <header>
     <div class="container">
         <div class="main-nav">
-            <button class="filter-menu-toggle" id="filter-menu-toggle">
+            <button class="filter-menu-toggle" id="filter-menu-toggle" @click="sidebarOpen = !sidebarOpen">
                 <i class="fas fa-bars"></i>
             </button>            
             
@@ -43,7 +47,7 @@
                     <li><a href="{% url 'main:about' %}">Про нас</a></li>
                     <li><a href="{% url 'main:contact' %}">Контакти</a></li>
                     <li>
-                        <a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon">
+                        <a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon" id="nav-cart-badge">
                             <i class="fas fa-shopping-cart"></i>
                             Кошик
                             {% with total_items=cart|length %}
@@ -80,23 +84,35 @@
 {% if messages %}
 <div class="toast-container">
     {% for message in messages %}
-    <div class="toast toast-{{ message.tags }}">
+    <div class="toast toast-{{ message.tags }}"
+         x-data="{ show: true }" 
+         x-show="show" 
+         x-init="setTimeout(() => show = false, 3000)"
+         x-transition:leave="transition ease-in duration-400"
+         x-transition:leave-start="opacity-100 transform translate-x-0"
+         x-transition:leave-end="opacity-0 transform translate-x-full">
         <span class="toast-icon">🛒</span>
         <span class="toast-text">{{ message }}</span>
-        <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+        <button class="toast-close" @click="show = false">✕</button>
     </div>
     {% endfor %}
 </div>
 {% endif %}
 
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar" id="sidebar" :class="{ 'active': sidebarOpen }" @click.outside="sidebarOpen = false">
     <div class="sidebar-header">
         <span class="sidebar-title">Фільтри</span>
-        <button class="sidebar-close" id="sidebar-close-btn">✕</button>
+        <button class="sidebar-close" id="sidebar-close-btn" @click="sidebarOpen = false">✕</button>
     </div>
     <div class="sidebar-body">
     {% block sidebar %}
-    <form class="sf-form" action="{% url 'main:product-list' %}" method="get" id="sidebarFilterForm">
+    <form class="sf-form" action="{% url 'main:product-list' %}" method="get" id="sidebarFilterForm" 
+          x-data="{ count: document.querySelectorAll('#sidebarFilterForm input[type=checkbox]:checked').length }"
+          hx-get="{% url 'main:product-list' %}" 
+          hx-target="#catalog-content" 
+          hx-swap="outerHTML" 
+          hx-push-url="true"
+          hx-indicator=".product-list">
 
       <!-- ── ЗАГОЛОВОК ── -->
       <div class="sf-header">
@@ -108,18 +124,18 @@
 
       <!-- ── ВИРОБНИКИ ── -->
       {% if all_suppliers %}
-      <div class="sf-section">
-        <button type="button" class="sf-section-toggle" onclick="sfToggle(this)">
+      <div class="sf-section" x-data="{ collapsed: false }">
+        <button type="button" class="sf-section-toggle" @click="collapsed = !collapsed">
           <span><i class="fas fa-industry"></i> Виробники</span>
-          <i class="fas fa-chevron-up sf-chevron"></i>
+          <i class="fas fa-chevron-up sf-chevron" :class="{ 'collapsed': collapsed }"></i>
         </button>
-        <div class="sf-section-body">
+        <div class="sf-section-body" :class="{ 'collapsed': collapsed }" x-init="$el.style.maxHeight = $el.scrollHeight + 'px'">
           {% for supplier in all_suppliers %}
           <label class="sf-toggle-row">
             <span class="sf-toggle-label">{{ supplier.name }}</span>
             <span class="sf-switch">
               <input type="checkbox" name="supplier" value="{{ supplier.name }}"
-                     onchange="sfUpdateCount()"
+                     @change="count = document.querySelectorAll('#sidebarFilterForm input[type=checkbox]:checked').length"
                      {% if supplier.name in global_selected_suppliers %}checked{% endif %}>
               <span class="sf-slider"></span>
             </span>
@@ -131,18 +147,18 @@
 
       <!-- ── КАТЕГОРІЇ ── -->
       {% if all_categories %}
-      <div class="sf-section">
-        <button type="button" class="sf-section-toggle" onclick="sfToggle(this)">
+      <div class="sf-section" x-data="{ collapsed: false }">
+        <button type="button" class="sf-section-toggle" @click="collapsed = !collapsed">
           <span><i class="fas fa-tag"></i> Категорії</span>
-          <i class="fas fa-chevron-up sf-chevron"></i>
+          <i class="fas fa-chevron-up sf-chevron" :class="{ 'collapsed': collapsed }"></i>
         </button>
-        <div class="sf-section-body">
+        <div class="sf-section-body" :class="{ 'collapsed': collapsed }" x-init="$el.style.maxHeight = $el.scrollHeight + 'px'">
           {% for cat in all_categories %}
           <label class="sf-toggle-row">
             <span class="sf-toggle-label">{{ cat.name }}</span>
             <span class="sf-switch">
               <input type="checkbox" name="category" value="{{ cat.name }}"
-                     onchange="sfUpdateCount()"
+                     @change="count = document.querySelectorAll('#sidebarFilterForm input[type=checkbox]:checked').length"
                      {% if cat.name in global_selected_categories %}checked{% endif %}>
               <span class="sf-slider"></span>
             </span>
@@ -157,7 +173,7 @@
         <button type="submit" class="sf-apply-btn" id="sfApplyBtn">
           <i class="fas fa-check"></i>
           <span>Застосувати</span>
-          <span class="sf-count-badge" id="sfCountBadge" style="display:none">0</span>
+          <span class="sf-count-badge" id="sfCountBadge" x-show="count > 0" x-text="count" style="display: none;"></span>
         </button>
       </div>
 
@@ -179,93 +195,6 @@
     </div>
 </footer>
 </div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const sidebar = document.getElementById('sidebar');
-    const toggleButton = document.getElementById('filter-menu-toggle');
-    if (!sidebar || !toggleButton) return;
-
-    function toggleSidebar() {
-        sidebar.classList.toggle('active');
-        document.body.classList.toggle('no-scroll');
-    }
-
-    toggleButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleSidebar();
-    });
-
-    const closeBtn = document.getElementById('sidebar-close-btn');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', toggleSidebar);
-    }
-
-    document.addEventListener('click', function(event) {
-        const isClickInsideSidebar = sidebar.contains(event.target);
-        const isClickOnToggleButton = toggleButton.contains(event.target);
-        if (sidebar.classList.contains('active') && !isClickInsideSidebar && !isClickOnToggleButton) {
-            toggleSidebar();
-        }
-    });
-
-    document.querySelectorAll('.toast').forEach(function(toast) {
-        setTimeout(function() {
-            toast.classList.add('toast-hide');
-            setTimeout(function() { toast.remove(); }, 400);
-        }, 3000);
-    });
-
-    window.toggleDropdown = function(id) {
-        const dropdown = document.getElementById(id);
-        if (dropdown) {
-            dropdown.classList.toggle('open');
-            const icon = dropdown.previousElementSibling.querySelector('i.fas');
-            if (icon) {
-                icon.classList.toggle('fa-chevron-down');
-                icon.classList.toggle('fa-chevron-up');
-            }
-        }
-    };
-});
-</script>
-
-<script>
-/* ── Sidebar Filter JS ── */
-
-// Підрахунок активних фільтрів і оновлення кнопки
-function sfUpdateCount() {
-    const checked = document.querySelectorAll('#sidebarFilterForm input[type="checkbox"]:checked').length;
-    const badge = document.getElementById('sfCountBadge');
-    if (!badge) return;
-    if (checked > 0) {
-        badge.textContent = checked;
-        badge.style.display = 'flex';
-    } else {
-        badge.style.display = 'none';
-    }
-}
-
-// Розгортання/згортання секції
-function sfToggle(btn) {
-    const body = btn.nextElementSibling;
-    const chevron = btn.querySelector('.sf-chevron');
-    if (!body) return;
-    body.classList.toggle('collapsed');
-    if (chevron) chevron.classList.toggle('collapsed');
-}
-
-// Ініціалізація при завантаженні
-document.addEventListener('DOMContentLoaded', function () {
-    // Виставляємо початкову висоту для анімації collapse
-    document.querySelectorAll('.sf-section-body').forEach(function(body) {
-        body.style.maxHeight = body.scrollHeight + 'px';
-    });
-
-    // Запускаємо лічильник одразу (якщо фільтри вже активні)
-    sfUpdateCount();
-});
-</script>
 
 </body>
 </html>

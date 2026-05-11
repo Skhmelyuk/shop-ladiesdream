@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'discounts.apps.DiscountsConfig',
     'widget_tweaks',
+    'django_htmx',
 ]
 
 MIDDLEWARE = [
@@ -43,6 +44,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'accounts.middleware.AdminAccessRedirectMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
 ]
 
 ROOT_URLCONF = 'shop.urls'

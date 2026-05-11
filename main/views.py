@@ -75,6 +75,8 @@ def product_list(request, category_slug=None):
         'selected_supplier': ', '.join(selected_suppliers) if selected_suppliers else '',
     }
 
+    if getattr(request, 'htmx', False):
+        return render(request, 'main/partials/product_grid.html', context)
     return render(request, 'main/product-list.html', context)
 
 def product_detail(request, id, slug):

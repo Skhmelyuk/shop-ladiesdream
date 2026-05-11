@@ -1,0 +1,149 @@
+<div class="main-content" id="catalog-content">
+    {% if selected_category or selected_supplier %}
+        <div class="active-filters-bar">
+            <span class="active-filters-label">
+                <i class="fas fa-filter"></i> Активні фільтри:
+<div class="main-content" id="catalog-content">
+    {% if selected_category or selected_supplier %}
+        <div class="active-filters-bar">
+            <span class="active-filters-label">
+                <i class="fas fa-filter"></i> Активні фільтри:
+            </span>
+            <div class="active-filters-chips">
+                {% if selected_supplier %}
+                    <span class="filter-chip filter-chip--supplier">
+                        <i class="fas fa-industry"></i>
+                        <span>{{ selected_supplier }}</span>
+                        <a href="?{% if selected_category %}category={{ selected_category }}{% endif %}"
+                           hx-get="?{% if selected_category %}category={{ selected_category }}{% endif %}"
+                           hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm"
+                           class="filter-chip__remove" title="Прибрати фільтр">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                {% endif %}
+                {% if selected_category %}
+                    <span class="filter-chip filter-chip--category">
+                        <i class="fas fa-tag"></i>
+                        <span>{{ selected_category }}</span>
+                        <a href="?{% if selected_supplier %}supplier={{ selected_supplier }}{% endif %}"
+                           hx-get="?{% if selected_supplier %}supplier={{ selected_supplier }}{% endif %}"
+                           hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm"
+                           class="filter-chip__remove" title="Прибрати фільтр">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                {% endif %}
+                <a href="{% url 'main:product-list' %}" class="filter-chip-reset" hx-get="{% url 'main:product-list' %}" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true">
+                    <i class="fas fa-times-circle"></i> Скинути всі
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="get" class="search-form" hx-get="{% url 'main:product-list' %}" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm" hx-indicator=".product-list">
+        <label for="q">Пошук:</label>
+        <input type="text" name="q" id="q" value="{{ request.GET.q }}" placeholder="Пошук товарів...">
+        <button type="submit" class="btn-search">🔍</button>
+        <a href="{% url 'main:product-list' %}" class="btn-reset" hx-get="{% url 'main:product-list' %}" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true">Скинути</a>
+    </form>
+
+    <div class="sort-buttons" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm, .search-form" hx-indicator=".product-list">
+        <span>Сортувати за:</span>
+        <a href="?sort=price_asc" hx-get="?sort=price_asc" class="btn-sort {% if request.GET.sort == 'price_asc' %}active{% endif %}">Ціна ↑</a>
+        <a href="?sort=price_desc" hx-get="?sort=price_desc" class="btn-sort {% if request.GET.sort == 'price_desc' %}active{% endif %}">Ціна ↓</a>
+        <a href="?sort=views" hx-get="?sort=views" class="btn-sort {% if request.GET.sort == 'views' %}active{% endif %}">Популярні</a>
+    </div>
+
+    <div class="product-list">
+        {% for product in page_obj %}
+            <div class="product-card">
+                <div class="product-card-image">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="cursor: pointer;"
+                             @click.prevent="modalOpen = true; modalImg = '{{ product.image.url }}'; modalTitle = '{{ product.name|escapejs }}'; modalDesc = '{{ product.description|escapejs }}'">
+                    {% else %}
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="product-badges">
+                        {% if product.discount_percent and product.discount_percent > 0 %}
+                            <div class="discount-badge">
+                                -{{ product.discount_percent }}%
+                            </div>
+                        {% endif %}
+                        {% if product.is_featured %}
+                            <div class="featured-badge">
+                                <i class="fas fa-star"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="product-card-content">
+                    <h3 class="product-title">
+                        <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}">
+                            {{ product.name }}
+                        </a>
+                    </h3>
+
+                    <p class="product-description">
+                        {{ product.description|truncatewords:12 }}
+                    </p>
+                    
+                    <div class="product-meta">
+                        <div class="product-views">
+                            <i class="fas fa-eye"></i> {{ product.views }}
+                        </div>
+                    </div>
+
+                    <div class="product-price">
+                        {% if product.discount_percent and product.discount_percent > 0 %}
+                            <span class="old-price">{{ product.price|floatformat:2 }} грн</span>
+                            <span class="current-price">{{ product.get_discounted_price|floatformat:2 }} грн</span>
+                        {% else %}
+                            <span class="current-price">{{ product.price|floatformat:2 }} грн</span>
+                        {% endif %}
+                    </div>
+
+                    <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}" 
+                       class="btn-view-product">
+                        <i class="fas fa-search"></i>
+                        Переглянути товар
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🛍️</div>
+                <h3 class="empty-state-title">Товарів не знайдено</h3>
+                <p class="empty-state-text">Спробуйте змінити фільтри або пошуковий запит</p>
+                <a href="{% url 'main:product-list' %}" class="empty-state-btn">Показати всі товари</a>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm, .search-form" hx-indicator=".product-list">
+        <ul class="pagination-list">
+            {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}" hx-get="?page={{ page_obj.previous_page_number }}">«</a></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="active"><span>{{ num }}</span></li>
+                {% else %}
+                    <li><a href="?page={{ num }}" hx-get="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}" hx-get="?page={{ page_obj.next_page_number }}">»</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

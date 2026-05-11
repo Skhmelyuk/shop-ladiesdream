@@ -1,0 +1,9 @@
+<a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon" id="nav-cart-badge" hx-swap-oob="true">
+    <i class="fas fa-shopping-cart"></i>
+    Кошик
+    {% with total_items=cart|length %}
+        {% if total_items > 0 %}
+            <span class="cart-count">({{ total_items }})</span>
+        {% endif %}
+    {% endwith %}
+</a>
