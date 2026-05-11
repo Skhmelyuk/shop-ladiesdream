@@ -47,8 +47,12 @@
           hx-trigger="submit, keyup delay:500ms changed from:#q, search from:#q">
         <label for="q">Пошук:</label>
         <input type="text" name="q" id="q" value="{{ request.GET.q }}" placeholder="Пошук товарів...">
-        <button type="submit" class="btn-search">🔍</button>
-        <a href="{% url 'main:product-list' %}" class="btn-reset" hx-get="{% url 'main:product-list' %}" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true">Скинути</a>
+        <a href="{% url 'main:product-list' %}" class="btn-reset" 
+           hx-get="{% url 'main:product-list' %}" 
+           hx-target="#catalog-content" 
+           hx-select="#catalog-content"
+           hx-swap="outerHTML" 
+           hx-push-url="true">Скинути</a>
     </form>
 
     <div id="catalog-sort-and-results">
