@@ -36,7 +36,14 @@
         </div>
     {% endif %}
 
-    <form method="get" class="search-form" hx-get="{% url 'main:product-list' %}" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm" hx-indicator=".product-list">
+    <form method="get" class="search-form" 
+          hx-get="{% url 'main:product-list' %}" 
+          hx-target="#catalog-content" 
+          hx-swap="outerHTML" 
+          hx-push-url="true" 
+          hx-include="#sidebarFilterForm" 
+          hx-indicator=".product-list"
+          hx-trigger="submit, keyup delay:500ms changed from:#q, search from:#q">
         <label for="q">Пошук:</label>
         <input type="text" name="q" id="q" value="{{ request.GET.q }}" placeholder="Пошук товарів...">
         <button type="submit" class="btn-search">🔍</button>
