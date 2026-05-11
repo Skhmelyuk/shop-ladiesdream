@@ -51,14 +51,22 @@
         <a href="{% url 'main:product-list' %}" class="btn-reset" hx-get="{% url 'main:product-list' %}" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true">Скинути</a>
     </form>
 
-    <div class="sort-buttons" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm, .search-form" hx-indicator=".product-list">
-        <span>Сортувати за:</span>
-        <a href="?sort=price_asc" hx-get="?sort=price_asc" class="btn-sort {% if request.GET.sort == 'price_asc' %}active{% endif %}">Ціна ↑</a>
-        <a href="?sort=price_desc" hx-get="?sort=price_desc" class="btn-sort {% if request.GET.sort == 'price_desc' %}active{% endif %}">Ціна ↓</a>
-        <a href="?sort=views" hx-get="?sort=views" class="btn-sort {% if request.GET.sort == 'views' %}active{% endif %}">Популярні</a>
-    </div>
+    <div id="catalog-sort-and-results">
+        <div class="sort-buttons" 
+             x-data="{ activeSort: '{{ request.GET.sort|default:'' }}' }"
+             hx-target="#catalog-results" 
+             hx-select="#catalog-results" 
+             hx-swap="outerHTML" 
+             hx-push-url="true" 
+             hx-include="#sidebarFilterForm, .search-form" 
+             hx-indicator=".product-list">
+            <span>Сортувати за:</span>
+            <a href="?sort=price_asc" hx-get="?sort=price_asc" class="btn-sort" :class="{ 'active': activeSort === 'price_asc' }" @click="activeSort = 'price_asc'">Ціна ↑</a>
+            <a href="?sort=price_desc" hx-get="?sort=price_desc" class="btn-sort" :class="{ 'active': activeSort === 'price_desc' }" @click="activeSort = 'price_desc'">Ціна ↓</a>
+            <a href="?sort=views" hx-get="?sort=views" class="btn-sort" :class="{ 'active': activeSort === 'views' }" @click="activeSort = 'views'">Популярні</a>
+        </div>
 
-    <div id="catalog-results">
+        <div id="catalog-results">
         <div class="product-list">
             {% for product in page_obj %}
                 <div class="product-card">
@@ -142,7 +150,7 @@
         </div>
 
         {% if page_obj.paginator.num_pages > 1 %}
-        <div class="pagination" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm, .search-form" hx-indicator=".product-list">
+        <div class="pagination" hx-target="#catalog-results" hx-select="#catalog-results" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm, .search-form" hx-indicator=".product-list">
             <ul class="pagination-list">
                 {% if page_obj.has_previous %}
                     <li><a href="?page={{ page_obj.previous_page_number }}" hx-get="?page={{ page_obj.previous_page_number }}">«</a></li>
@@ -162,5 +170,6 @@
             </ul>
         </div>
         {% endif %}
+    </div>
     </div>
 </div>
