@@ -1,4 +1,4 @@
-<div class="main-content" id="catalog-content">
+<div class="main-content" id="catalog-content" x-data="{ activeSort: '{{ request.GET.sort|default:'' }}' }">
     {% if selected_category or selected_supplier %}
         <div class="active-filters-bar">
             <span class="active-filters-label">
@@ -36,39 +36,48 @@
         </div>
     {% endif %}
 
-    <form method="get" class="search-form" 
-          hx-get="{% url 'main:product-list' %}" 
-          hx-target="#catalog-results" 
-          hx-select="#catalog-results"
-          hx-swap="outerHTML" 
-          hx-push-url="true" 
-          hx-include="#sidebarFilterForm" 
-          hx-indicator=".product-list"
-          hx-trigger="submit, keyup delay:500ms changed from:#q, search from:#q">
-        <label for="q">Пошук:</label>
-        <input type="text" name="q" id="q" value="{{ request.GET.q }}" placeholder="Пошук товарів...">
-        <a href="{% url 'main:product-list' %}" class="btn-reset" 
-           hx-get="{% url 'main:product-list' %}" 
-           hx-target="#catalog-content" 
-           hx-select="#catalog-content"
-           hx-swap="outerHTML" 
-           hx-push-url="true">Скинути</a>
-    </form>
+    <div class="catalog-toolbar">
+        <form method="get" class="toolbar-search" 
+              hx-get="{% url 'main:product-list' %}" 
+              hx-target="#catalog-results" 
+              hx-select="#catalog-results"
+              hx-swap="outerHTML" 
+              hx-push-url="true" 
+              hx-include="#sidebarFilterForm" 
+              hx-indicator=".product-list"
+              hx-trigger="submit, keyup delay:500ms changed from:#q, search from:#q">
+            
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" name="q" id="q" value="{{ request.GET.q }}" placeholder="Пошук товарів..." autocomplete="off">
+            <input type="hidden" name="sort" :value="activeSort">
+            
+            <button type="button" class="toolbar-clear" 
+                    x-data="{ query: '{{ request.GET.q }}' }" 
+                    x-show="query.length > 0 || document.getElementById('q').value.length > 0"
+                    @click="document.getElementById('q').value = ''; query = ''; document.querySelector('.toolbar-search').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))"
+                    x-effect="document.getElementById('q').addEventListener('input', e => query = e.target.value)"
+                    style="display: none;">
+                <i class="fas fa-times"></i>
+            </button>
+        </form>
 
-    <div id="catalog-sort-and-results">
-        <div class="sort-buttons" 
-             x-data="{ activeSort: '{{ request.GET.sort|default:'' }}' }"
+        <div class="toolbar-divider"></div>
+
+        <div class="toolbar-sort" 
              hx-target="#catalog-results" 
              hx-select="#catalog-results" 
              hx-swap="outerHTML" 
              hx-push-url="true" 
-             hx-include="#sidebarFilterForm, .search-form" 
+             hx-include="#sidebarFilterForm, .toolbar-search" 
              hx-indicator=".product-list">
-            <span>Сортувати за:</span>
-            <a href="?sort=price_asc" hx-get="?sort=price_asc" class="btn-sort" :class="{ 'active': activeSort === 'price_asc' }" @click="activeSort = 'price_asc'">Ціна ↑</a>
-            <a href="?sort=price_desc" hx-get="?sort=price_desc" class="btn-sort" :class="{ 'active': activeSort === 'price_desc' }" @click="activeSort = 'price_desc'">Ціна ↓</a>
-            <a href="?sort=views" hx-get="?sort=views" class="btn-sort" :class="{ 'active': activeSort === 'views' }" @click="activeSort = 'views'">Популярні</a>
+            <span class="sort-label">Сортувати:</span>
+            <div class="sort-options">
+                <a href="?sort=price_asc" hx-get="?sort=price_asc" class="sort-pill" :class="{ 'active': activeSort === 'price_asc' }" @click="activeSort = 'price_asc'">Ціна ↑</a>
+                <a href="?sort=price_desc" hx-get="?sort=price_desc" class="sort-pill" :class="{ 'active': activeSort === 'price_desc' }" @click="activeSort = 'price_desc'">Ціна ↓</a>
+                <a href="?sort=views" hx-get="?sort=views" class="sort-pill" :class="{ 'active': activeSort === 'views' }" @click="activeSort = 'views'">Популярні</a>
+            </div>
         </div>
+    </div>
 
         <div id="catalog-results">
         <div class="product-list">

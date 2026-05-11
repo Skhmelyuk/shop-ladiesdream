@@ -1135,112 +1135,127 @@ header {
     display: inline-block;
 }
 
-.search-form {
+/* --- Unified Catalog Toolbar --- */
+.catalog-toolbar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 25px;
-    padding: 15px;
-    background-color: var(--white);
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    justify-content: space-between;
+    background: var(--white);
+    padding: 8px 15px;
+    border-radius: 40px;
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.1);
+    margin-bottom: 30px;
     animation: fadeInUp 0.8s ease-out 0.4s backwards;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
-.search-form label {
-    font-weight: bold;
-    color: var(--dark-grey);
+.toolbar-search {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 250px;
+    position: relative;
 }
 
-.search-form input[type="text"] {
-    flex-grow: 1;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
+.search-icon {
+    color: var(--medium-grey);
+    font-size: 1.1em;
+    margin-right: 10px;
+    margin-left: 5px;
+}
+
+.toolbar-search input[type="text"] {
+    flex: 1;
+    border: none;
+    background: transparent;
     font-size: 1em;
-    transition: border-color var(--transition);
-}
-
-.search-form input[type="text"]:focus {
-    border-color: var(--pink);
-    box-shadow: 0 0 5px rgba(255, 105, 180, 0.4);
+    padding: 8px 0;
+    color: var(--dark-grey);
     outline: none;
 }
 
-.search-form .btn-search,
-.search-form .btn-reset {
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
+.toolbar-search input[type="text"]::placeholder {
+    color: #bbb;
+}
+
+.toolbar-clear {
+    background: transparent;
     border: none;
-    transition: background-color var(--transition), transform 0.1s;
+    color: #ccc;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: color var(--transition);
 }
 
-.search-form .btn-search {
-    background-color: var(--pink);
-    color: var(--white);
+.toolbar-clear:hover {
+    color: var(--pink);
 }
 
-.search-form .btn-search:hover {
-    background-color: #e5579f;
-    transform: translateY(-1px);
+.toolbar-divider {
+    width: 1px;
+    height: 30px;
+    background-color: #eee;
+    display: block;
 }
 
-.search-form .btn-reset {
-    background-color: var(--light-grey-bg);
-    color: var(--medium-grey);
-    border: 1px solid #ccc;
-}
-
-.search-form .btn-reset:hover {
-    background-color: #ddd;
-}
-
-.sort-buttons {
-    margin-bottom: 30px;
-    padding: 15px;
-    background-color: var(--white);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+.toolbar-sort {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 10px;
-    animation: fadeInUp 0.8s ease-out 0.6s backwards;
 }
 
-.sort-buttons span {
-    font-weight: bold;
-    margin-right: 5px;
-    color: var(--dark-grey);
-}
-
-.sort-buttons .btn-sort {
-    text-decoration: none;
-    padding: 8px 15px;
-    border: 1px solid var(--light-pink);
-    border-radius: 20px;
-    color: var(--pink);
-    background-color: var(--white);
-    font-size: 0.9em;
+.sort-label {
     font-weight: 500;
+    color: var(--medium-grey);
+    font-size: 0.9em;
+}
+
+.sort-options {
+    display: flex;
+    gap: 8px;
+}
+
+.sort-pill {
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+    color: var(--medium-grey);
+    background-color: var(--light-grey-bg);
     transition: all var(--transition);
+    border: 1px solid transparent;
 }
 
-.sort-buttons .btn-sort:hover:not(.active) {
-    background-color: var(--light-pink);
-    border-color: var(--pink);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+.sort-pill:hover:not(.active) {
+    background-color: #eee;
 }
 
-.sort-buttons .btn-sort.active {
+.sort-pill.active {
     background-color: var(--pink);
     color: var(--white);
-    border-color: var(--pink);
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(255, 105, 180, 0.5);
-    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(255, 105, 180, 0.4);
+}
+
+@media (max-width: 768px) {
+    .catalog-toolbar {
+        flex-direction: column;
+        border-radius: 20px;
+        padding: 15px;
+        align-items: stretch;
+    }
+    
+    .toolbar-divider {
+        width: 100%;
+        height: 1px;
+        margin: 5px 0;
+    }
+    
+    .toolbar-sort {
+        justify-content: space-between;
+    }
 }
 
 footer {
