@@ -1,7 +1,11 @@
 from .cart import Cart
+from .wishlist import Wishlist
 
 def cart(request):
     """
-    Повертає об'єкт кошика для контексту шаблону.
+    Повертає об'єкт кошика та списку бажань для контексту шаблону.
     """
-    return {'cart': Cart(request)}
+    return {
+        'cart': Cart(request),
+        'wishlist': Wishlist(request)
+    }

@@ -16,6 +16,11 @@
     <!-- HTMX & Alpine.js -->
     <script src="https://unpkg.com/htmx.org@1.9.11"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.8/dist/cdn.min.js"></script>
+    <script>
+        document.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    </script>
 </head>
 <body x-data="{ sidebarOpen: false }" :class="{ 'no-scroll': sidebarOpen }">
 
@@ -32,7 +37,7 @@
 <header>
     <div class="container">
         <div class="main-nav">
-            <button class="filter-menu-toggle" id="filter-menu-toggle" @click="sidebarOpen = !sidebarOpen">
+            <button class="filter-menu-toggle" id="filter-menu-toggle" @click.stop="sidebarOpen = !sidebarOpen">
                 <i class="fas fa-bars"></i>
             </button>            
             
@@ -46,6 +51,9 @@
                     <li><a href="{% url 'main:product-list' %}">Каталог</a></li>
                     <li><a href="{% url 'main:about' %}">Про нас</a></li>
                     <li><a href="{% url 'main:contact' %}">Контакти</a></li>
+                    <li>
+                        {% include "wishlist/partials/wishlist_badge.html" %}
+                    </li>
                     <li>
                         <a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon" id="nav-cart-badge">
                             <i class="fas fa-shopping-cart"></i>
@@ -112,6 +120,7 @@
           hx-target="#catalog-content" 
           hx-swap="outerHTML" 
           hx-push-url="true"
+          hx-trigger="change, submit"
           hx-indicator=".product-list">
 
       <!-- ── ЗАГОЛОВОК ── -->

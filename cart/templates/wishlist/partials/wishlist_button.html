@@ -1,0 +1,11 @@
+{% if request.htmx %}
+    {% include "wishlist/partials/wishlist_badge.html" %}
+{% endif %}
+
+<button type="button" 
+        class="wishlist-btn {% if in_wishlist %}active{% endif %}" 
+        hx-post="{% url 'cart:wishlist_toggle' product.id %}" 
+        hx-swap="outerHTML" 
+        title="{% if in_wishlist %}Видалити зі списку бажань{% else %}Додати до списку бажань{% endif %}">
+    <i class="{% if in_wishlist %}fas{% else %}far{% endif %} fa-heart"></i>
+</button>

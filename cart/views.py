@@ -3,6 +3,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from main.models import Product, ProductImage
 from .cart import Cart
+from .wishlist import Wishlist
 from .forms import CartAddProductForm, CartRemoveProductForm
 from decimal import Decimal
 
@@ -156,3 +157,21 @@ def cart_detail(request):
     if getattr(request, 'htmx', False):
         return render(request, 'cart/partials/cart_content.html', {'cart': cart})
     return render(request, 'cart/detail.html', {'cart': cart})
+
+@require_POST
+def wishlist_toggle(request, product_id):
+    wishlist = Wishlist(request)
+    product = get_object_or_404(Product, id=product_id)
+    added = wishlist.toggle(product)
+    
+    # Якщо запит від HTMX, повертаємо тільки кнопку і бейдж OOB
+    if getattr(request, 'htmx', False):
+        return render(request, 'wishlist/partials/wishlist_button.html', {
+            'product': product,
+            'in_wishlist': added
+        })
+    return redirect('cart:wishlist_detail')
+
+def wishlist_detail(request):
+    wishlist = Wishlist(request)
+    return render(request, 'wishlist/detail.html', {'wishlist': wishlist})

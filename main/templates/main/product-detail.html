@@ -181,10 +181,24 @@
           </div>
         </div>
 
-        <!-- КНОПКА КОШИКА -->
-        <button type="submit" class="pd-add-to-cart-btn">
-          <i class="fas fa-shopping-cart"></i> Додати до кошика
-        </button>
+        <!-- КНОПКИ ДІЙ -->
+        <div class="pd-action-buttons" style="display: flex; gap: 15px; align-items: center; margin-top: 15px;">
+            <button type="submit" class="pd-add-to-cart-btn" style="flex: 1;">
+              <i class="fas fa-shopping-cart"></i> Додати до кошика
+            </button>
+            
+            <div class="pd-wishlist-wrapper">
+                {% if product.id|stringformat:"s" in wishlist.wishlist %}
+                    {% with in_wishlist=True %}
+                        {% include "wishlist/partials/wishlist_button.html" %}
+                    {% endwith %}
+                {% else %}
+                    {% with in_wishlist=False %}
+                        {% include "wishlist/partials/wishlist_button.html" %}
+                    {% endwith %}
+                {% endif %}
+            </div>
+        </div>
 
       </form>
 

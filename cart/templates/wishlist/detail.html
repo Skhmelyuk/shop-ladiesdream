@@ -1,0 +1,60 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load shop_filters %}
+
+{% block title %}Список бажань{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4" style="color: var(--primary-color);">Список бажань</h1>
+
+    {% if wishlist|length > 0 %}
+    <div class="product-list grid-view" id="wishlist-content">
+        {% for product in wishlist %}
+            <div class="product-card" id="wishlist-item-{{ product.id }}">
+                <div class="product-image-container">
+                    {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="product-image">
+                    {% else %}
+                        <div class="no-image"><i class="fas fa-image"></i></div>
+                    {% endif %}
+                    
+                    {% if product.old_price %}
+                        <span class="sale-badge">SALE</span>
+                    {% endif %}
+                    
+                    <div class="product-actions">
+                        {% with in_wishlist=True %}
+                            {% include "wishlist/partials/wishlist_button.html" %}
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">
+                        <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}">{{ product.name }}</a>
+                    </h3>
+                    <div class="product-price-container">
+                        {% if product.old_price %}
+                            <span class="old-price">{{ product.old_price }} грн</span>
+                        {% endif %}
+                        <span class="product-price">{{ product.price }} грн</span>
+                    </div>
+                    <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}" class="btn-buy mt-2">
+                        <i class="fas fa-eye"></i> Переглянути
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state text-center py-5">
+        <i class="far fa-heart fa-4x mb-3" style="color: var(--accent-color);"></i>
+        <h3>Ваш список бажань порожній</h3>
+        <p class="text-muted">Додайте сюди товари, які вам сподобалися, щоб не загубити їх.</p>
+        <a href="{% url 'main:product-list' %}" class="btn-buy mt-3 d-inline-block" style="width: auto; padding: 10px 30px;">
+            Перейти до каталогу
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -143,7 +143,8 @@ class Cart:
         
         products = Product.objects.filter(id__in=product_ids)
 
-        cart = self.cart.copy()
+        import copy
+        cart = copy.deepcopy(self.cart)
         # Створюємо словник продуктів для швидкого доступу
         product_dict = {str(p.id): p for p in products}
         
