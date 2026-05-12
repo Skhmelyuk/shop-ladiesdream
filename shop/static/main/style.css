@@ -323,14 +323,14 @@ header {
 
 /* ---------- САЙДБАР (SIDEBAR) ---------- */
 .sidebar {
-    width: 300px;
+    width: 320px;
     padding: 0;
     background: linear-gradient(160deg, #fff0f6 0%, #ffffff 60%);
     box-shadow: 4px 0 24px rgba(233, 30, 99, 0.12);
     border-right: 2px solid #f8bbd0;
     position: fixed;
     top: 0;
-    left: -320px;
+    left: -340px;
     z-index: 2000;
     height: 100%;
     overflow-y: auto;

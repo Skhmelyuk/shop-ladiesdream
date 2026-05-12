@@ -154,7 +154,7 @@ def cart_detail(request):
             item['available_stock'] = total_stock
             item['max_quantity'] = total_stock
   
-    if getattr(request, 'htmx', False):
+    if getattr(request, 'htmx', False) and request.htmx.target == 'cart-container':
         return render(request, 'cart/partials/cart_content.html', {'cart': cart})
     return render(request, 'cart/detail.html', {'cart': cart})
 

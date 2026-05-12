@@ -10,19 +10,196 @@
     <link rel="icon" href="{% static 'main/favicon.ico' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="{% static 'main/style.css' %}" rel="stylesheet">
+    <link href="{% static 'main/cart.css' %}" rel="stylesheet">
+    <link href="{% static 'main/info_pages.css' %}" rel="stylesheet">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    {% block extra_css %}{% endblock %}
     
     <!-- HTMX & Alpine.js -->
     <script src="https://unpkg.com/htmx.org@1.9.11"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.8/dist/cdn.min.js"></script>
+    <style>
+        /* Global HTMX Progress Bar */
+        .htmx-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background-color: #ff69b4; /* var(--pink) */
+            z-index: 9999;
+            transition: width 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            pointer-events: none;
+            opacity: 0;
+        }
+        body.htmx-request .htmx-progress {
+            width: 40%;
+            opacity: 1;
+        }
+        /* When the request finishes, it quickly goes to 100% and fades out */
+        .htmx-progress.finished {
+            width: 100% !important;
+            opacity: 0;
+        }
+
+        /* HTMX Error Styles */
+        .htmx-error-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f44336;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Sidebar Size and Color Grids */
+        .sf-size-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+            gap: 12px;
+            padding: 10px 20px; /* Added horizontal padding */
+        }
+        .sf-size-item {
+            cursor: pointer;
+            position: relative;
+        }
+        .sf-size-item input {
+            position: absolute;
+            opacity: 0;
+            width: 0; height: 0;
+        }
+        .sf-size-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 42px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            color: #444;
+        }
+        .sf-size-item:hover .sf-size-label {
+            border-color: #ff69b4;
+            color: #ff69b4;
+        }
+        .sf-size-item input:checked + .sf-size-label {
+            background-color: #ff69b4;
+            color: white;
+            border-color: #ff69b4;
+            box-shadow: 0 4px 10px rgba(255, 105, 180, 0.3);
+        }
+
+        .sf-color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+            padding: 10px 20px; /* Added horizontal padding */
+        }
+        .sf-color-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .sf-color-item:hover {
+            background-color: rgba(255, 105, 180, 0.05);
+        }
+        .sf-color-item input {
+            position: absolute;
+            opacity: 0;
+            width: 0; height: 0;
+        }
+        .sf-color-swatch {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .sf-color-name {
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* Highlight for selected color */
+        .sf-color-item input:checked ~ .sf-color-swatch {
+            border-color: #ff69b4;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #ff69b4;
+            transform: scale(1.1);
+        }
+        .sf-color-item input:checked ~ .sf-color-name {
+            color: #ff69b4;
+            font-weight: 700;
+        }
+    </style>
     <script>
         document.addEventListener('htmx:configRequest', (event) => {
             event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
         });
+
+        // Update active link state in navigation
+        document.addEventListener('htmx:afterOnLoad', (event) => {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.primary-nav a').forEach(link => {
+                try {
+                    const linkPath = new URL(link.href).pathname;
+                    if (currentPath === linkPath) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                } catch(e) {}
+            });
+        });
+
+        // Handle HTMX Progress Bar "finish" state
+        document.addEventListener('htmx:afterRequest', (event) => {
+            const progress = document.querySelector('.htmx-progress');
+            if (progress) {
+                progress.classList.add('finished');
+                setTimeout(() => {
+                    progress.classList.remove('finished');
+                    progress.style.width = '0%';
+                }, 500);
+            }
+        });
+
+        // Global Error Handling
+        document.addEventListener('htmx:responseError', (event) => {
+            const errorMsg = document.getElementById('htmx-error-msg');
+            if (errorMsg) {
+                errorMsg.innerText = 'Помилка з\'єднання з сервером. Спробуйте ще раз.';
+                errorMsg.style.display = 'block';
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 5000);
+            }
+        });
     </script>
 </head>
-<body x-data="{ sidebarOpen: false }" :class="{ 'no-scroll': sidebarOpen }">
+<body x-data="{ sidebarOpen: false }" :class="{ 'no-scroll': sidebarOpen }" hx-boost="true">
+    <div class="htmx-progress"></div>
+    <div id="htmx-error-msg" class="htmx-error-message"></div>
 
 <div class="top-bar">
     <div class="container top-bar-content">
@@ -71,10 +248,10 @@
             <nav class="user-nav">
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" class="btn-admin">Адмін панель</a>
+                        <a href="{% url 'admin:index' %}" class="btn-admin" hx-boost="false">Адмін панель</a>
                     {% endif %}
                     <a href="{% url 'accounts:profile' %}" class="btn-profile">Профіль</a>
-                    <a href="{% url 'account_logout' %}" class="btn-logout">Вийти</a>
+                    <a href="{% url 'account_logout' %}" class="btn-logout" hx-boost="false">Вийти</a>
                 {% else %}
                     <a href="{% url 'account_login' %}" class="btn-login">Вхід</a>
                     <a href="{% url 'account_signup' %}" class="btn-register">Реєстрація</a>
@@ -107,6 +284,7 @@
 </div>
 {% endif %}
 
+<div id="site-layout">
 <aside class="sidebar" id="sidebar" :class="{ 'active': sidebarOpen }" @click.outside="sidebarOpen = false">
     <div class="sidebar-header">
         <span class="sidebar-title">Фільтри</span>
@@ -114,84 +292,12 @@
     </div>
     <div class="sidebar-body">
     {% block sidebar %}
-    <form class="sf-form" action="{% url 'main:product-list' %}" method="get" id="sidebarFilterForm" 
-          x-data="{ count: document.querySelectorAll('#sidebarFilterForm input[type=checkbox]:checked').length }"
-          hx-get="{% url 'main:product-list' %}" 
-          hx-target="#catalog-content" 
-          hx-swap="outerHTML" 
-          hx-push-url="true"
-          hx-trigger="change, submit"
-          hx-indicator=".product-list">
-
-      <!-- ── ЗАГОЛОВОК ── -->
-      <div class="sf-header">
-        <span class="sf-title"><i class="fas fa-sliders-h"></i> Фільтри</span>
-        <a href="{% url 'main:product-list' %}" class="sf-reset" title="Скинути всі фільтри">
-          <i class="fas fa-undo"></i>
-        </a>
-      </div>
-
-      <!-- ── ВИРОБНИКИ ── -->
-      {% if all_suppliers %}
-      <div class="sf-section" x-data="{ collapsed: false }">
-        <button type="button" class="sf-section-toggle" @click="collapsed = !collapsed">
-          <span><i class="fas fa-industry"></i> Виробники</span>
-          <i class="fas fa-chevron-up sf-chevron" :class="{ 'collapsed': collapsed }"></i>
-        </button>
-        <div class="sf-section-body" :class="{ 'collapsed': collapsed }" x-init="$el.style.maxHeight = $el.scrollHeight + 'px'">
-          {% for supplier in all_suppliers %}
-          <label class="sf-toggle-row">
-            <span class="sf-toggle-label">{{ supplier.name }}</span>
-            <span class="sf-switch">
-              <input type="checkbox" name="supplier" value="{{ supplier.name }}"
-                     @change="count = document.querySelectorAll('#sidebarFilterForm input[type=checkbox]:checked').length"
-                     {% if supplier.name in global_selected_suppliers %}checked{% endif %}>
-              <span class="sf-slider"></span>
-            </span>
-          </label>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- ── КАТЕГОРІЇ ── -->
-      {% if all_categories %}
-      <div class="sf-section" x-data="{ collapsed: false }">
-        <button type="button" class="sf-section-toggle" @click="collapsed = !collapsed">
-          <span><i class="fas fa-tag"></i> Категорії</span>
-          <i class="fas fa-chevron-up sf-chevron" :class="{ 'collapsed': collapsed }"></i>
-        </button>
-        <div class="sf-section-body" :class="{ 'collapsed': collapsed }" x-init="$el.style.maxHeight = $el.scrollHeight + 'px'">
-          {% for cat in all_categories %}
-          <label class="sf-toggle-row">
-            <span class="sf-toggle-label">{{ cat.name }}</span>
-            <span class="sf-switch">
-              <input type="checkbox" name="category" value="{{ cat.name }}"
-                     @change="count = document.querySelectorAll('#sidebarFilterForm input[type=checkbox]:checked').length"
-                     {% if cat.name in global_selected_categories %}checked{% endif %}>
-              <span class="sf-slider"></span>
-            </span>
-          </label>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- ── КНОПКА ЗАСТОСУВАТИ ── -->
-      <div class="sf-footer">
-        <button type="submit" class="sf-apply-btn" id="sfApplyBtn">
-          <i class="fas fa-check"></i>
-          <span>Застосувати</span>
-          <span class="sf-count-badge" id="sfCountBadge" x-show="count > 0" x-text="count" style="display: none;"></span>
-        </button>
-      </div>
-
-    </form>
+        {% include "main/partials/sidebar_filters.html" %}
     {% endblock %}
     </div>
 </aside>
 
-<div class="page-wrapper">
+<div class="page-wrapper w-100">
 <main>
     <div class="container">
         {% block content %}{% endblock %}
@@ -203,6 +309,7 @@
         <p>© 2025 LadiesDream. Всі права захищені.</p>
     </div>
 </footer>
+</div>
 </div>
 
 </body>

@@ -28,15 +28,60 @@ def product_list(request, category_slug=None):
     categories = Category.objects.filter(is_active=True).order_by('name')
     products = Product.objects.filter(is_available=True)
 
-    # --- Мультивибір ---
-    selected_categories = request.GET.getlist('category')
-    selected_suppliers  = request.GET.getlist('supplier')
+    # Визначаємо, чи запит на повне скидання (якщо є параметр reset)
+    is_reset = request.GET.get('reset') == '1'
+
+    if is_reset:
+        request.session['selected_categories'] = []
+        request.session['selected_suppliers'] = []
+        request.session['selected_sizes'] = []
+        request.session['selected_colors'] = []
+        selected_categories = []
+        selected_suppliers = []
+        selected_sizes = []
+        selected_colors = []
+    else:
+        # Отримуємо фільтри з GET
+        selected_categories = request.GET.getlist('category')
+        selected_suppliers = request.GET.getlist('supplier')
+        selected_sizes = request.GET.getlist('size')
+        selected_colors = request.GET.getlist('color')
+
+        # Флаг, що користувач активно взаємодіяв з формою фільтрів
+        is_filter_interaction = request.GET.get('filter_applied') == '1'
+
+        # Якщо в GET порожньо
+        if not any([selected_categories, selected_suppliers, selected_sizes, selected_colors]):
+            if is_filter_interaction:
+                # Користувач вручну зняв ВСІ фільтри — очищуємо сесію
+                request.session['selected_categories'] = []
+                request.session['selected_suppliers'] = []
+                request.session['selected_sizes'] = []
+                request.session['selected_colors'] = []
+            else:
+                # Звичайний перехід на сторінку — відновлюємо з сесії
+                selected_categories = request.session.get('selected_categories', [])
+                selected_suppliers = request.session.get('selected_suppliers', [])
+                selected_sizes = request.session.get('selected_sizes', [])
+                selected_colors = request.session.get('selected_colors', [])
+        else:
+            # В GET щось є — оновлюємо сесію
+            request.session['selected_categories'] = selected_categories
+            request.session['selected_suppliers'] = selected_suppliers
+            request.session['selected_sizes'] = selected_sizes
+            request.session['selected_colors'] = selected_colors
 
     if selected_categories:
         products = products.filter(category__name__in=selected_categories)
 
     if selected_suppliers:
         products = products.filter(supplier__name__in=selected_suppliers)
+
+    if selected_sizes:
+        products = products.filter(variants__size__name__in=selected_sizes).distinct()
+
+    if selected_colors:
+        products = products.filter(variants__color__name__in=selected_colors).distinct()
 
     search_query = request.GET.get('q')
     if search_query:
@@ -75,7 +120,7 @@ def product_list(request, category_slug=None):
         'selected_supplier': ', '.join(selected_suppliers) if selected_suppliers else '',
     }
 
-    if getattr(request, 'htmx', False):
+    if getattr(request, 'htmx', False) and request.htmx.target in ['catalog-content', 'catalog-results']:
         return render(request, 'main/partials/product_grid.html', context)
     return render(request, 'main/product-list.html', context)
 

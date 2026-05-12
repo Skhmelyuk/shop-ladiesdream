@@ -1,4 +1,4 @@
-<div class="cart-container" id="cart-container" hx-boost="true" hx-target="#cart-container" hx-swap="outerHTML">
+<div class="cart-container" id="cart-container">
     <h2 class="section-header">🛒 Ваш кошик</h2>
     
     {% if cart %}
@@ -47,7 +47,10 @@
                         </td>
                         
                         <td class="cart-item-quantity" x-data="{ qty: {{ item.quantity }}, maxQty: {{ item.available_stock|default:0 }} }">
-                            <form action="{% url 'cart:cart_add' item.product.id %}" method="post" class="quantity-form">
+                            <form action="{% url 'cart:cart_add' item.product.id %}" method="post" class="quantity-form"
+                                  hx-post="{% url 'cart:cart_add' item.product.id %}"
+                                  hx-target="#cart-container"
+                                  hx-swap="outerHTML">
                                 {% csrf_token %}
                                 <input type="hidden" name="color" value="{{ item.color }}">
                                 <input type="hidden" name="size" value="{{ item.size }}">
@@ -83,7 +86,10 @@
                         <td class="cart-item-price">
                             <div class="price-actions">
                                 <div class="item-total-price">{{ item.total_price|floatformat:2 }} грн</div>
-                                <form action="{% url 'cart:cart_remove' item.product.id %}" method="post" class="remove-form">
+                                <form action="{% url 'cart:cart_remove' item.product.id %}" method="post" class="remove-form"
+                                      hx-post="{% url 'cart:cart_remove' item.product.id %}"
+                                      hx-target="#cart-container"
+                                      hx-swap="outerHTML">
                                     {% csrf_token %}
                                     <input type="hidden" name="color" value="{{ item.color }}">
                                     <input type="hidden" name="size" value="{{ item.size }}">
@@ -115,7 +121,7 @@
                     <a href="{% url 'main:product-list' %}" class="btn btn-outline-secondary btn-continue">
                         <i class="fas fa-arrow-left me-2"></i>Продовжити покупки
                     </a>
-                    <a href="{% url 'orders:order_create' %}" class="btn btn-pink btn-checkout" hx-boost="false">
+                    <a href="{% url 'orders:order_create' %}" class="btn btn-pink btn-checkout">
                         <i class="fas fa-shopping-bag me-2"></i>Оформити замовлення
                     </a>
                 </div>

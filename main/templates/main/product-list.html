@@ -6,72 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="{% static 'main/style.css' %}">
 {% block sidebar %}
-<form class="sf-form" action="{% url 'main:product-list' %}" method="get" id="sidebarFilterForm">
-
-  <!-- ── ЗАГОЛОВОК ── -->
-  <div class="sf-header">
-    <span class="sf-title"><i class="fas fa-sliders-h"></i> Фільтри</span>
-    <a href="{% url 'main:product-list' %}" class="sf-reset" title="Скинути всі фільтри">
-      <i class="fas fa-undo"></i>
-    </a>
-  </div>
-
-  <!-- ── ВИРОБНИКИ ── -->
-  {% if suppliers %}
-  <div class="sf-section">
-    <button type="button" class="sf-section-toggle" onclick="sfToggle(this)">
-      <span><i class="fas fa-industry"></i> Виробники</span>
-      <i class="fas fa-chevron-up sf-chevron"></i>
-    </button>
-    <div class="sf-section-body">
-      {% for supplier in suppliers %}
-      <label class="sf-toggle-row">
-        <span class="sf-toggle-label">{{ supplier.name }}</span>
-        <span class="sf-switch">
-          <input type="checkbox" name="supplier" value="{{ supplier.name }}"
-                 onchange="sfUpdateCount()"
-                 {% if supplier.name in selected_suppliers %}checked{% endif %}>
-          <span class="sf-slider"></span>
-        </span>
-      </label>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- ── КАТЕГОРІЇ ── -->
-  {% if categories %}
-  <div class="sf-section">
-    <button type="button" class="sf-section-toggle" onclick="sfToggle(this)">
-      <span><i class="fas fa-tag"></i> Категорії</span>
-      <i class="fas fa-chevron-up sf-chevron"></i>
-    </button>
-    <div class="sf-section-body">
-      {% for category in categories %}
-      <label class="sf-toggle-row">
-        <span class="sf-toggle-label">{{ category.name }}</span>
-        <span class="sf-switch">
-          <input type="checkbox" name="category" value="{{ category.name }}"
-                 onchange="sfUpdateCount()"
-                 {% if category.name in selected_categories %}checked{% endif %}>
-          <span class="sf-slider"></span>
-        </span>
-      </label>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- ── КНОПКА ЗАСТОСУВАТИ ── -->
-  <div class="sf-footer">
-    <button type="submit" class="sf-apply-btn" id="sfApplyBtn">
-      <i class="fas fa-check"></i>
-      <span>Застосувати</span>
-      <span class="sf-count-badge" id="sfCountBadge" style="display:none">0</span>
-    </button>
-  </div>
-
-</form>
+    {% include "main/partials/sidebar_filters.html" %}
 {% endblock %}
 
 {% block content %}

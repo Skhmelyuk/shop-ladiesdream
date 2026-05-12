@@ -1,0 +1,9 @@
+{
+  "ui": {
+    "hideContextSummary": false,
+    "footer": {
+      "hideModelInfo": false,
+      "hideContextPercentage": false
+    }
+  }
+}

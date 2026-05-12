@@ -1,50 +1,81 @@
 <div class="main-content" id="catalog-content" x-data="{ activeSort: '{{ request.GET.sort|default:'' }}' }">
-    {% if selected_category or selected_supplier %}
+    {% if global_selected_categories or global_selected_suppliers or global_selected_sizes or global_selected_colors %}
         <div class="active-filters-bar">
             <span class="active-filters-label">
                 <i class="fas fa-filter"></i> Активні фільтри:
             </span>
             <div class="active-filters-chips">
-                {% if selected_supplier %}
-                    <span class="filter-chip filter-chip--supplier">
-                        <i class="fas fa-industry"></i>
-                        <span>{{ selected_supplier }}</span>
-                        <a href="?{% if selected_category %}category={{ selected_category }}{% endif %}"
-                           hx-get="?{% if selected_category %}category={{ selected_category }}{% endif %}"
-                           hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm"
-                           class="filter-chip__remove" title="Прибрати фільтр">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    </span>
-                {% endif %}
-                {% if selected_category %}
+                {# Categories #}
+                {% for cat_name in global_selected_categories %}
                     <span class="filter-chip filter-chip--category">
                         <i class="fas fa-tag"></i>
-                        <span>{{ selected_category }}</span>
-                        <a href="?{% if selected_supplier %}supplier={{ selected_supplier }}{% endif %}"
-                           hx-get="?{% if selected_supplier %}supplier={{ selected_supplier }}{% endif %}"
-                           hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true" hx-include="#sidebarFilterForm"
-                           class="filter-chip__remove" title="Прибрати фільтр">
+                        <span>{{ cat_name }}</span>
+                        <a href="javascript:void(0)"
+                           @click="const form = document.getElementById('sidebarFilterForm'); const cb = form.querySelector('input[name=category][value=\'{{ cat_name|escapejs }}\']'); if(cb) { cb.checked = false; form.dispatchEvent(new Event('submit', {bubbles: true})); }"
+                           class="filter-chip__remove" title="Прибрати категорію">
                             <i class="fas fa-times"></i>
                         </a>
                     </span>
-                {% endif %}
-                <a href="{% url 'main:product-list' %}" class="filter-chip-reset" hx-get="{% url 'main:product-list' %}" hx-target="#catalog-content" hx-swap="outerHTML" hx-push-url="true">
+                {% endfor %}
+
+                {# Suppliers #}
+                {% for sup_name in global_selected_suppliers %}
+                    <span class="filter-chip filter-chip--supplier">
+                        <i class="fas fa-industry"></i>
+                        <span>{{ sup_name }}</span>
+                        <a href="javascript:void(0)"
+                           @click="const form = document.getElementById('sidebarFilterForm'); const cb = form.querySelector('input[name=supplier][value=\'{{ sup_name|escapejs }}\']'); if(cb) { cb.checked = false; form.dispatchEvent(new Event('submit', {bubbles: true})); }"
+                           class="filter-chip__remove" title="Прибрати виробника">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                {% endfor %}
+
+                {# Sizes #}
+                {% for size in global_selected_sizes %}
+                    <span class="filter-chip filter-chip--size">
+                        <i class="fas fa-ruler-combined"></i>
+                        <span>{{ size }}</span>
+                        <a href="javascript:void(0)"
+                           @click="const form = document.getElementById('sidebarFilterForm'); const cb = form.querySelector('input[name=size][value=\'{{ size|escapejs }}\']'); if(cb) { cb.checked = false; form.dispatchEvent(new Event('submit', {bubbles: true})); }"
+                           class="filter-chip__remove" title="Прибрати розмір">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                {% endfor %}
+
+                {# Colors #}
+                {% for color in global_selected_colors %}
+                    <span class="filter-chip filter-chip--color">
+                        <i class="fas fa-palette"></i>
+                        <span>{{ color }}</span>
+                        <a href="javascript:void(0)"
+                           @click="const form = document.getElementById('sidebarFilterForm'); const cb = form.querySelector('input[name=color][value=\'{{ color|escapejs }}\']'); if(cb) { cb.checked = false; form.dispatchEvent(new Event('submit', {bubbles: true})); }"
+                           class="filter-chip__remove" title="Прибрати колір">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </span>
+                {% endfor %}
+
+                <a href="{% url 'main:product-list' %}?reset=1" class="filter-chip-reset" 
+                   hx-get="{% url 'main:product-list' %}?reset=1" 
+                   hx-target="#site-layout" hx-select="#site-layout" hx-swap="outerHTML" hx-push-url="true">
                     <i class="fas fa-times-circle"></i> Скинути всі
                 </a>
             </div>
         </div>
     {% endif %}
 
-    <div class="catalog-toolbar">
+    <div class="catalog-toolbar"
+         hx-target="#catalog-results" 
+         hx-select="#catalog-results" 
+         hx-swap="outerHTML" 
+         hx-push-url="true" 
+         hx-indicator=".product-list">
+        
         <form method="get" class="toolbar-search" 
               hx-get="{% url 'main:product-list' %}" 
-              hx-target="#catalog-results" 
-              hx-select="#catalog-results"
-              hx-swap="outerHTML" 
-              hx-push-url="true" 
               hx-include="#sidebarFilterForm" 
-              hx-indicator=".product-list"
               hx-trigger="submit, keyup delay:500ms changed from:#q, search from:#q">
             
             <i class="fas fa-search search-icon"></i>
@@ -63,13 +94,7 @@
 
         <div class="toolbar-divider"></div>
 
-        <div class="toolbar-sort" 
-             hx-target="#catalog-results" 
-             hx-select="#catalog-results" 
-             hx-swap="outerHTML" 
-             hx-push-url="true" 
-             hx-include="#sidebarFilterForm, .toolbar-search" 
-             hx-indicator=".product-list">
+        <div class="toolbar-sort" hx-include="#sidebarFilterForm, .toolbar-search">
             <span class="sort-label">Сортувати:</span>
             <div class="sort-options">
                 <a href="?sort=price_asc" hx-get="?sort=price_asc" class="sort-pill" :class="{ 'active': activeSort === 'price_asc' }" @click="activeSort = 'price_asc'">Ціна ↑</a>

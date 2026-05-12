@@ -1,0 +1,132 @@
+<form class="sf-form" action="{% url 'main:product-list' %}" method="get" id="sidebarFilterForm" 
+      x-data="{ 
+          count: 0,
+          updateCount() {
+              this.count = this.$el.querySelectorAll('input[type=checkbox]:checked').length;
+          }
+      }"
+      x-init="updateCount()"
+      hx-get="{% url 'main:product-list' %}" 
+      hx-target="#site-layout" 
+      hx-select="#site-layout"
+      hx-swap="outerHTML show:window:top" 
+      hx-push-url="true"
+      hx-trigger="submit"
+      hx-indicator=".product-list">
+
+    <input type="hidden" name="filter_applied" value="1">
+
+    <!-- ── ЗАГОЛОВОК ── -->
+    <div class="sf-header">
+        <span class="sf-title"><i class="fas fa-sliders-h"></i> Фільтри</span>
+        <a href="{% url 'main:product-list' %}?reset=1" class="sf-reset" title="Скинути всі фільтри"
+           @click="sidebarOpen = false"
+           hx-get="{% url 'main:product-list' %}?reset=1"
+           hx-target="#site-layout"
+           hx-select="#site-layout"
+           hx-push-url="true">
+            <i class="fas fa-undo"></i>
+        </a>
+    </div>
+
+    <!-- ── ВИРОБНИКИ ── -->
+    {% if all_suppliers %}
+    <div class="sf-section" x-data="{ collapsed: false }">
+        <button type="button" class="sf-section-toggle" @click="collapsed = !collapsed">
+            <span><i class="fas fa-industry"></i> Виробники</span>
+            <i class="fas fa-chevron-up sf-chevron" :class="{ 'collapsed': collapsed }"></i>
+        </button>
+        <div class="sf-section-body" :class="{ 'collapsed': collapsed }" x-init="$el.style.maxHeight = $el.scrollHeight + 'px'">
+            {% for supplier in all_suppliers %}
+            <label class="sf-toggle-row">
+                <span class="sf-toggle-label">{{ supplier.name }}</span>
+                <span class="sf-switch">
+                    <input type="checkbox" name="supplier" value="{{ supplier.name }}"
+                           @change="updateCount()"
+                           {% if supplier.name in global_selected_suppliers %}checked{% endif %}>
+                    <span class="sf-slider"></span>
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── КАТЕГОРІЇ ── -->
+    {% if all_categories %}
+    <div class="sf-section" x-data="{ collapsed: false }">
+        <button type="button" class="sf-section-toggle" @click="collapsed = !collapsed">
+            <span><i class="fas fa-tag"></i> Категорії</span>
+            <i class="fas fa-chevron-up sf-chevron" :class="{ 'collapsed': collapsed }"></i>
+        </button>
+        <div class="sf-section-body" :class="{ 'collapsed': collapsed }" x-init="$el.style.maxHeight = $el.scrollHeight + 'px'">
+            {% for cat in all_categories %}
+            <label class="sf-toggle-row">
+                <span class="sf-toggle-label">{{ cat.name }}</span>
+                <span class="sf-switch">
+                    <input type="checkbox" name="category" value="{{ cat.name }}"
+                           @change="updateCount()"
+                           {% if cat.name in global_selected_categories %}checked{% endif %}>
+                    <span class="sf-slider"></span>
+                </span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── РОЗМІРИ ── -->
+    {% if all_sizes %}
+    <div class="sf-section" x-data="{ collapsed: false }">
+        <button type="button" class="sf-section-toggle" @click="collapsed = !collapsed">
+            <span><i class="fas fa-ruler-combined"></i> Розміри</span>
+            <i class="fas fa-chevron-up sf-chevron" :class="{ 'collapsed': collapsed }"></i>
+        </button>
+        <div class="sf-section-body" :class="{ 'collapsed': collapsed }" x-init="$el.style.maxHeight = $el.scrollHeight + 'px'">
+            <div class="sf-size-grid">
+                {% for size in all_sizes %}
+                <label class="sf-size-item">
+                    <input type="checkbox" name="size" value="{{ size.name }}"
+                           @change="updateCount()"
+                           {% if size.name in global_selected_sizes %}checked{% endif %}>
+                    <span class="sf-size-label">{{ size.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── КОЛЬОРИ ── -->
+    {% if all_colors %}
+    <div class="sf-section" x-data="{ collapsed: false }">
+        <button type="button" class="sf-section-toggle" @click="collapsed = !collapsed">
+            <span><i class="fas fa-palette"></i> Кольори</span>
+            <i class="fas fa-chevron-up sf-chevron" :class="{ 'collapsed': collapsed }"></i>
+        </button>
+        <div class="sf-section-body" :class="{ 'collapsed': collapsed }" x-init="$el.style.maxHeight = $el.scrollHeight + 'px'">
+            <div class="sf-color-grid">
+                {% for color in all_colors %}
+                <label class="sf-color-item" title="{{ color.name }}">
+                    <input type="checkbox" name="color" value="{{ color.name }}"
+                           @change="updateCount()"
+                           {% if color.name in global_selected_colors %}checked{% endif %}>
+                    <span class="sf-color-swatch" style="background-color: {{ color.hex_code }};"></span>
+                    <span class="sf-color-name">{{ color.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── КНОПКА ЗАСТОСУВАТИ ── -->
+    <div class="sf-footer">
+        <button type="submit" class="sf-apply-btn" id="sfApplyBtn" @click="sidebarOpen = false">
+            <i class="fas fa-check"></i>
+            <span>Застосувати</span>
+            <span class="sf-count-badge" id="sfCountBadge" x-show="count > 0" x-text="count" style="display: none;"></span>
+        </button>
+    </div>
+
+</form>

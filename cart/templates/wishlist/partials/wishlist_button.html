@@ -1,5 +1,5 @@
 {% if request.htmx %}
-    {% include "wishlist/partials/wishlist_badge.html" %}
+    {% include "wishlist/partials/wishlist_badge.html" with oob=True %}
 {% endif %}
 
 <button type="button" 
