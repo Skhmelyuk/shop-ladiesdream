@@ -1,6 +1,4 @@
-<a href="{% url 'cart:cart_detail' %}" 
-   hx-get="{% url 'cart:cart_detail' %}"
-   class="nav-item cart-icon" id="nav-cart-badge" hx-swap-oob="true">
+<a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon" id="nav-cart-badge" hx-swap-oob="true">
     <i class="fas fa-shopping-cart"></i>
     Кошик
     {% with total_items=cart|length %}

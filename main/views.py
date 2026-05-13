@@ -164,35 +164,40 @@ def product_detail(request, id, slug):
     final_price = Decimal(str(product.get_current_price()))
     is_on_sale = final_price < base_price
 
-    # --- Sizes & Colors stock ---
-    # Отримуємо унікальні імена, відразу очищаючи від пробілів
-    sizes = sorted(list(set(v.size.name.strip() for v in product.variants.all())))
+    # --- Sizes & Colors stock (SINGLE SOURCE OF TRUTH: variants) ---
+    all_variants = product.variants.select_related('size', 'color').all()
     
-    # Для кольорів складніше, бо треба зберегти hex_code
-    colors_map = {}
-    for v in product.variants.all():
+    # 1. Створюємо список розмірів (унікальні, очищені, відсортовані)
+    sizes = sorted(list(set(v.size.name.strip() for v in all_variants)))
+    
+    # 2. Створюємо список кольорів (унікальні, очищені, зберігаємо hex)
+    colors_dict = {}
+    for v in all_variants:
         c_name = v.color.name.strip()
-        if c_name not in colors_map:
-            colors_map[c_name] = getattr(v.color, 'hex_code', '#ccc')
-    colors = sorted([(name, hex_code) for name, hex_code in colors_map.items()])
+        if c_name not in colors_dict:
+            colors_dict[c_name] = getattr(v.color, 'hex_code', '#ccc')
+    colors = sorted([(name, hex) for name, hex in colors_dict.items()])
 
-    sizes_with_stock = {}
+    # 3. Карта "Колір -> [Розміри]" та точні залишки
+    sizes_with_stock = {} # для відображення в шаблоні (загальний сток на розмір)
     color_to_sizes = {}
     variant_stock_data = {}
     
-    for variant in product.variants.all():
-        size_name = variant.size.name.strip()
-        color_name = variant.color.name.strip()
+    for variant in all_variants:
+        s_name = variant.size.name.strip()
+        c_name = variant.color.name.strip()
         
-        sizes_with_stock[size_name] = sizes_with_stock.get(size_name, 0) + variant.stock
+        # Загальний сток розміру
+        sizes_with_stock[s_name] = sizes_with_stock.get(s_name, 0) + variant.stock
         
-        if color_name not in color_to_sizes:
-            color_to_sizes[color_name] = {}
-        color_to_sizes[color_name][size_name] = variant.stock > 0
+        # Наявність розміру для конкретного кольору
+        if c_name not in color_to_sizes:
+            color_to_sizes[c_name] = {}
+        color_to_sizes[c_name][s_name] = variant.stock > 0
         
-        # Зберігаємо точну кількість для кожного варіанту
-        variant_key = f"{color_name}_{size_name}".lower()
-        variant_stock_data[variant_key] = variant.stock
+        # Точний залишок для JS (ключ в нижньому регістрі для надійності)
+        v_key = f"{c_name}_{s_name}".lower()
+        variant_stock_data[v_key] = variant.stock
 
     # --- Handle Review Form ---
     if request.method == 'POST' and request.user.is_authenticated:
@@ -262,7 +267,6 @@ def product_detail(request, id, slug):
         'final_price': final_price,
         'is_on_sale': is_on_sale,
         'sizes_with_stock': sizes_with_stock,
-        'colors_with_stock': colors_with_stock,
         'color_to_sizes_json': color_to_sizes_json,
         'variant_stock_json': variant_stock_json,
         'sizes': sizes,
