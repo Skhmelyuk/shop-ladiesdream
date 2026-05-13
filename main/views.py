@@ -165,27 +165,33 @@ def product_detail(request, id, slug):
     is_on_sale = final_price < base_price
 
     # --- Sizes & Colors stock ---
-    sizes = list(product.variants.values_list("size__name", flat=True).distinct())
-    colors = list(product.variants.values_list("color__name", "color__hex_code").distinct())
+    # Отримуємо унікальні імена, відразу очищаючи від пробілів
+    sizes = sorted(list(set(v.size.name.strip() for v in product.variants.all())))
+    
+    # Для кольорів складніше, бо треба зберегти hex_code
+    colors_map = {}
+    for v in product.variants.all():
+        c_name = v.color.name.strip()
+        if c_name not in colors_map:
+            colors_map[c_name] = getattr(v.color, 'hex_code', '#ccc')
+    colors = sorted([(name, hex_code) for name, hex_code in colors_map.items()])
 
     sizes_with_stock = {}
-    colors_with_stock = {}
     color_to_sizes = {}
     variant_stock_data = {}
+    
     for variant in product.variants.all():
-        size_name = variant.size.name
-        color_name = variant.color.name
+        size_name = variant.size.name.strip()
+        color_name = variant.color.name.strip()
         
         sizes_with_stock[size_name] = sizes_with_stock.get(size_name, 0) + variant.stock
-        key = (variant.size.name, variant.color.name)
-        colors_with_stock[key] = variant.stock > 0
         
         if color_name not in color_to_sizes:
             color_to_sizes[color_name] = {}
         color_to_sizes[color_name][size_name] = variant.stock > 0
         
         # Зберігаємо точну кількість для кожного варіанту
-        variant_key = f"{color_name}_{size_name}"
+        variant_key = f"{color_name}_{size_name}".lower()
         variant_stock_data[variant_key] = variant.stock
 
     # --- Handle Review Form ---

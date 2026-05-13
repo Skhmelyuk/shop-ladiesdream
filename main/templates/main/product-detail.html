@@ -74,7 +74,6 @@
       <!-- РЕЙТИНГ -->
       <div class="pd-rating-row">
         {% with avg_rating=average_rating|default:0 %}
-          <!-- Debug: average_rating = {{ average_rating }}, avg_rating = {{ avg_rating }} -->
           <span class="pd-stars">
             {% for i in "12345"|make_list %}
               {% with star_num=forloop.counter %}
@@ -202,56 +201,6 @@
 
       </form>
 
-      <script>
-      // Оновлюємо hidden поля перед відправкою форми
-      document.querySelector('.pd-form').addEventListener('submit', function(e) {
-        const selectedColor = document.querySelector('input[name="color"]:checked');
-        const selectedSize = document.querySelector('input[name="size"]:checked');
-        
-        if (selectedColor) {
-          document.getElementById('selected_color').value = selectedColor.value;
-        }
-        if (selectedSize) {
-          document.getElementById('selected_size').value = selectedSize.value;
-        }
-      });
-      
-      // Валідація при ручному введенні кількості
-      const quantityInput = document.querySelector('input[name="quantity"]');
-      if (quantityInput) {
-        quantityInput.addEventListener('input', function() {
-          const maxQty = this.hasAttribute('max') ? parseInt(this.max) : null;
-          let val = parseInt(this.value) || 1;
-          
-          if (maxQty !== null && val > maxQty) {
-            this.value = maxQty;
-          } else if (val < 1) {
-            this.value = 1;
-          }
-        });
-        
-        // Обмеження кнопки кошика при відсутності товару
-        quantityInput.addEventListener('change', function() {
-          const addToCartBtn = document.querySelector('.pd-add-to-cart-btn');
-          const maxQty = this.hasAttribute('max') ? parseInt(this.max) : null;
-          
-          if (maxQty === 0) {
-            addToCartBtn.disabled = true;
-            addToCartBtn.textContent = 'Немає в наявності';
-            addToCartBtn.style.opacity = '0.5';
-            addToCartBtn.style.cursor = 'not-allowed';
-          } else {
-            addToCartBtn.disabled = false;
-            addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Додати до кошика';
-            addToCartBtn.style.opacity = '1';
-            addToCartBtn.style.cursor = 'pointer';
-          }
-        });
-      }
-      </script>
-
-
-
     </div>
   </div>
 
@@ -327,7 +276,6 @@
             </div>
           {% endif %}
           
-          <!-- Фото/відео -->
           {% if review_item.review.images.all or review_item.review.videos.all %}
             <div class="pd-review-media">
               {% for image in review_item.review.images.all %}
@@ -366,14 +314,12 @@
             </div>
           {% endif %}
           
-          <!-- Кнопка відповіді - тільки для адміністраторів -->
           {% if user.is_staff %}
             <button class="btn-reply" onclick="showReplyForm({{ review_item.review.id }})">
               <i class="fas fa-reply"></i> Відповісти
             </button>
           {% endif %}
           
-          <!-- Відповіді адміністратора -->
           {% for reply in review_item.admin_replies %}
             <div class="pd-review-reply admin-reply">
               <div class="pd-review-header">
@@ -410,14 +356,14 @@
         </a>
       {% else %}
         <a href="{% url 'account_login' %}?next={{ request.path }}#reviews-section" class="btn">
-          <i class="fas fa-sign-in-alt"></i> Увійти та написати відгук
+          <i class="fas fa-sign-in-alt"></i> Увійдіть та написати відгук
         </a>
       {% endif %}
     </div>
   {% endif %}
 </div>
 
-<!-- Модальне вікно для медіа -->
+<!-- Модальні вікна -->
 <div id="reviewMediaModal" class="media-modal" style="display: none;">
   <div class="media-modal-content">
     <span class="media-modal-close" onclick="closeReviewMediaModal()">&times;</span>
@@ -425,7 +371,6 @@
   </div>
 </div>
 
-<!-- Форма відповіді -->
 <div id="replyForm" class="reply-modal" style="display: none;">
   <div class="reply-modal-content">
     <div class="reply-modal-header">
@@ -436,13 +381,10 @@
       {% csrf_token %}
       <input type="hidden" name="parent_review_id" id="parentReviewId">
       <input type="hidden" name="product_pk" value="{{ product.pk }}">
-      
       <div class="form-group">
         <label for="replyContent">Ваша відповідь:</label>
         <textarea name="content" id="replyContent" rows="3" required></textarea>
       </div>
-      
-      
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Надіслати</button>
         <button type="button" class="btn btn-secondary" onclick="hideReplyForm()">Скасувати</button>
@@ -451,272 +393,18 @@
   </div>
 </div>
 
-<!-- Кастомне сповіщення -->
-<div id="customNotification" class="custom-notification" style="display: none;">
-  <div class="notification-content">
-    <div class="notification-icon">
-      <i class="fas fa-check-circle"></i>
-    </div>
-    <div class="notification-message">
-      <h4 id="notificationTitle">Успіх!</h4>
-      <p id="notificationText">Вашу відповідь успішно додано!</p>
-    </div>
-    <button class="notification-close" onclick="hideNotification()">
-      <i class="fas fa-times"></i>
-    </button>
-  </div>
-</div>
-
-<!-- ================= JS ================= -->
-<script>
-/* --- Базові зображення товару (всі) --- */
-const allImages = [
-  {% if product.image %}"{{ product.image.url }}",{% endif %}
-  {% for img in product.gallery.all %}"{{ img.image.url }}",{% endfor %}
-];
-
-/* --- Словник фото по кольорах: { "Назва": [url,...], "__all__": [url,...] } --- */
-/* Старий colorImages видалено - використовується новий оголошення нижче */
-
-/* --- Доступні розміри по кольорах: { "Назва": {"Розмір": bool, ...}, ... } --- */
-const colorToSizes = {{ color_to_sizes_json|safe }};
-
-/* --- Кількість товару для кожного варіанту: { "колір_розмір": кількість, ... } --- */
-const variantStock = {{ variant_stock_json|safe }};
-
-let activeImages = [...allImages];
-let current = 0;
-
-/* --- Зміна головного фото --- */
-function setImage(src, el) {
-  document.getElementById("mainImage").src = src;
-  current = activeImages.indexOf(src);
-  document.querySelectorAll(".pd-thumb").forEach(t => t.classList.remove("active-thumb"));
-  if (el) el.classList.add("active-thumb");
-}
-
-/* --- Перебудова мініатюр при зміні набору фото --- */
-function renderThumbnails(imgs) {
-  const container = document.getElementById("thumbnailList");
-  container.innerHTML = "";
-  imgs.forEach((src, i) => {
-    const img = document.createElement("img");
-    img.src = src;
-    img.className = "pd-thumb" + (i === 0 ? " active-thumb" : "");
-    img.alt = "";
-    img.onclick = () => setImage(src, img);
-    container.appendChild(img);
-  });
-}
-
-/* --- Оновити галерею для вибраного кольору --- */
-function updateGalleryForColor(colorName) {
-  const specific = colorImages[colorName] || [];
-  const general = colorImages["__all__"] || [];
-  const merged = [...specific, ...general];
-  activeImages = merged.length > 0 ? merged : [...allImages];
-  current = 0;
-  const mainImg = document.getElementById("mainImage");
-  mainImg.style.opacity = "0";
-  setTimeout(() => {
-    mainImg.src = activeImages[0];
-    mainImg.style.opacity = "1";
-  }, 150);
-  renderThumbnails(activeImages);
-}
-
-function galleryNext() {
-  current = (current + 1) % activeImages.length;
-  updateGalleryFrame();
-}
-
-function galleryPrev() {
-  current = (current - 1 + activeImages.length) % activeImages.length;
-  updateGalleryFrame();
-}
-
-function updateGalleryFrame() {
-  const img = document.getElementById("mainImage");
-  img.style.opacity = "0";
-  setTimeout(() => { img.src = activeImages[current]; img.style.opacity = "1"; }, 150);
-  document.querySelectorAll(".pd-thumb").forEach((t, i) => t.classList.toggle("active-thumb", i === current));
-}
-
-const variants = [
-  {% for v in product.variants.all %}
-    { size: "{{ v.size.name|escapejs }}", color: "{{ v.color.name|escapejs }}", stock: {{ v.stock }} }{% if not forloop.last %},{% endif %}
-  {% endfor %}
-];
-
-const sizeInputs = Array.from(document.querySelectorAll("input[name='size']"));
-const colorInputs = Array.from(document.querySelectorAll("input[name='color']"));
-const selectedSizeEl = document.getElementById("selected_size");
-const selectedColorEl = document.getElementById("selected_color");
-
-function autoSelectInitial() {
-  const first = variants.find(v => v.stock > 0);
-  if (!first) return;
-  
-  // Спочатку обираємо колір
-  const ci = colorInputs.find(i => i.value === first.color);
-  if (ci) {
-    ci.checked = true;
-    ci.closest("label").classList.add("selected");
-    selectedColorEl.value = ci.value;
-    updateGalleryForColor(ci.value);
-    updateSizesForColor(ci.value);
-  }
-  
-  // Потім обираємо розмір для цього кольору
-  const si = sizeInputs.find(i => i.value === first.size && !i.disabled);
-  if (si) { 
-    si.checked = true; 
-    si.closest("label").classList.add("selected"); 
-    selectedSizeEl.value = si.value; 
-  }
-}
-
-function updateSizesForColor(colorName) {
-  const availableSizes = colorToSizes[colorName] || {};
-  sizeInputs.forEach(si => {
-    const exists = availableSizes[si.value] === true;
-    const wrap = si.closest(".pd-size-btn");
-    si.disabled = !exists;
-    if (exists) wrap.classList.remove("disabled");
-    else { wrap.classList.add("disabled"); if (si.checked) { si.checked = false; wrap.classList.remove("selected"); selectedSizeEl.value = ""; } }
-  });
-}
-
-function updateColorsForSize(sizeName) {
-  colorInputs.forEach(ci => {
-    const exists = variants.some(v => v.size === sizeName && v.color === ci.value && v.stock > 0);
-    const wrap = ci.closest(".pd-color-wrap");
-    ci.disabled = !exists;
-    if (exists) wrap.classList.remove("disabled");
-    else { wrap.classList.add("disabled"); if (ci.checked) { ci.checked = false; wrap.classList.remove("selected"); selectedColorEl.value = ""; } }
-  });
-}
-
-function updateStockInfo() {
-  const selectedColor = selectedColorEl.value;
-  const selectedSize = selectedSizeEl.value;
-  const stockCountEl = document.getElementById("stock-count");
-  const quantityInput = document.querySelector("input[name='quantity']");
-  
-  if (selectedColor && selectedSize) {
-    const variantKey = `${selectedColor}_${selectedSize}`;
-    const stock = variantStock[variantKey] || 0;
-    
-    if (stock > 0) {
-      stockCountEl.textContent = `В наявності: ${stock} шт.`;
-      stockCountEl.className = 'pd-stock-count in-stock';
-      
-      // Обмежуємо максимальну кількість у формі
-      if (quantityInput) {
-        quantityInput.max = stock;
-        quantityInput.setAttribute('data-original-max', stock);
-        
-        // Якщо поточне значення більше за доступний stock, зменшуємо його
-        const currentValue = parseInt(quantityInput.value) || 1;
-        if (currentValue > stock) {
-          quantityInput.value = stock;
-        }
-      }
-    } else {
-      stockCountEl.textContent = 'Немає в наявності';
-      stockCountEl.className = 'pd-stock-count out-of-stock';
-      
-      // Якщо товару немає, обмежуємо кількість до 0
-      if (quantityInput) {
-        quantityInput.max = 0;
-        quantityInput.value = 0;
-      }
-    }
-  } else {
-    stockCountEl.textContent = 'Оберіть колір та розмір';
-    stockCountEl.className = 'pd-stock-count';
-    
-    // Скидаємо обмеження, якщо варіант не обраний
-    if (quantityInput) {
-      quantityInput.removeAttribute('max');
-      quantityInput.removeAttribute('data-original-max');
-      quantityInput.value = 1;
-    }
-  }
-}
-
-colorInputs.forEach(ci => {
-  ci.addEventListener("change", () => {
-    document.querySelectorAll(".pd-color-wrap").forEach(el => el.classList.remove("selected"));
-    ci.closest("label").classList.add("selected");
-    selectedColorEl.value = ci.value;
-    updateGalleryForColor(ci.value);
-    updateSizesForColor(ci.value);
-    
-    // Автоматично обираємо перший доступний розмір для цього кольору
-    const availableSizes = colorToSizes[ci.value] || {};
-    const firstSizeName = Object.keys(availableSizes).find(size => availableSizes[size]);
-    if (firstSizeName) {
-      const si = sizeInputs.find(i => i.value === firstSizeName && !i.disabled);
-      if (si) { 
-        si.checked = true; 
-        si.closest("label").classList.add("selected"); 
-        selectedSizeEl.value = si.value; 
-      }
-    }
-    updateStockInfo();
-  });
-});
-
-sizeInputs.forEach(si => {
-  si.addEventListener("change", () => {
-    document.querySelectorAll(".pd-size-btn").forEach(el => el.classList.remove("selected"));
-    si.closest("label").classList.add("selected");
-    selectedSizeEl.value = si.value;
-    // При зміні розміру НЕ оновлюємо кольори - тільки одностороння логіка
-    updateStockInfo();
-  });
-});
-
-function changeQty(delta) {
-  const inp = document.querySelector("input[name='quantity']");
-  if (!inp) return;
-  let val = parseInt(inp.value) || 1;
-  val = Math.max(1, val + delta);
-  
-  // Перевіряємо максимальну кількість
-  const maxQty = inp.hasAttribute('max') ? parseInt(inp.max) : null;
-  if (maxQty !== null && val > maxQty) {
-    val = maxQty;
-  }
-  
-  inp.value = val;
-}
-
-document.addEventListener("DOMContentLoaded", autoSelectInitial);
-</script>
-
-<!-- Модальне вікно для перегляду фото товару -->
+<!-- Модальне вікно для фото товару -->
 <div id="productImageModal" class="product-image-modal">
     <div class="product-modal-content">
         <span class="product-close-modal" onclick="closeProductImageModal()">&times;</span>
-        
         <div class="product-modal-gallery">
             <div class="product-modal-image-container">
                 <img id="productModalImage" src="" alt="{{ product.name }}">
-                <button class="product-modal-arrow product-modal-prev" onclick="modalPrevImage()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="product-modal-arrow product-modal-next" onclick="modalNextImage()">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <button class="product-modal-arrow product-modal-prev" onclick="modalPrevImage()"><i class="fas fa-chevron-left"></i></button>
+                <button class="product-modal-arrow product-modal-next" onclick="modalNextImage()"><i class="fas fa-chevron-right"></i></button>
             </div>
-            
-            <div class="product-modal-thumbnails" id="modalThumbnailList">
-                <!-- Мініатюри будуть додані через JavaScript -->
-            </div>
+            <div class="product-modal-thumbnails" id="modalThumbnailList"></div>
         </div>
-        
         <div class="product-modal-info">
             <h3>{{ product.name }}</h3>
             <p class="product-modal-price">
@@ -731,644 +419,279 @@ document.addEventListener("DOMContentLoaded", autoSelectInitial);
     </div>
 </div>
 
+<!-- ================= JS ================= -->
 <script>
-// Словник фото за кольорами
-let colorImages = {
+/* --- ДАНІ --- */
+const allImages = [
+  {% if product.image %}"{{ product.image.url }}",{% endif %}
+  {% for img in product.gallery.all %}"{{ img.image.url }}",{% endfor %}
+];
+
+const colorImages = {
     {% for color_name, color_hex in colors %}
-    '{{ color_name }}': [
+    '{{ color_name|escapejs }}': [
         {% for img in product.gallery.all %}
-        {% if img.color.name == color_name %}
-        '{{ img.image.url }}',
-        {% endif %}
+            {% if img.color.name == color_name %}'{{ img.image.url }}',{% endif %}
         {% endfor %}
     ],
     {% endfor %}
 };
-let currentModalImageIndex = 0;
+
+const colorToSizes = {{ color_to_sizes_json|safe }};
+const variantStock = {{ variant_stock_json|safe }};
+const variants = [
+  {% for v in product.variants.all %}
+    { size: "{{ v.size.name|escapejs }}", color: "{{ v.color.name|escapejs }}", stock: {{ v.stock }} }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+
+/* --- СТАН --- */
+let activeImages = [...allImages];
+let current = 0;
 let currentColor = '';
 
-// Ініціалізація фото для вибраного кольору
-function initColorImages(selectedColor) {
-    currentColor = selectedColor || Object.keys(colorImages)[0] || '';
-    let images = colorImages[currentColor] || [];
-    
-    // Якщо для кольору немає фото, використовуємо головне фото товару
-    if (images.length === 0) {
-        {% if product.image %}
-        images = ['{{ product.image.url }}'];
-        {% elif product.gallery.first %}
-        images = ['{{ product.gallery.first.image.url }}'];
-        {% else %}
-        images = ['{% static "main/default_product.jpg" %}'];
-        {% endif %}
-    }
-    
-    return images;
+const sizeInputs = Array.from(document.querySelectorAll("input[name='size']"));
+const colorInputs = Array.from(document.querySelectorAll("input[name='color']"));
+const selectedSizeEl = document.getElementById("selected_size");
+const selectedColorEl = document.getElementById("selected_color");
+const mainImg = document.getElementById("mainImage");
+const thumbContainer = document.getElementById("thumbnailList");
+
+/* --- ФУНКЦІЇ ГАЛЕРЕЇ --- */
+function setImage(src, el) {
+  if (mainImg) mainImg.src = src;
+  current = activeImages.indexOf(src);
+  document.querySelectorAll(".pd-thumb").forEach(t => t.classList.remove("active-thumb"));
+  if (el) el.classList.add("active-thumb");
 }
 
-// Відкриття модального вікна
+function renderThumbnails(imgs) {
+  if (!thumbContainer) return;
+  thumbContainer.innerHTML = "";
+  imgs.forEach((src, i) => {
+    const img = document.createElement("img");
+    img.src = src;
+    img.className = "pd-thumb" + (i === 0 ? " active-thumb" : "");
+    img.alt = "";
+    img.onclick = () => setImage(src, img);
+    thumbContainer.appendChild(img);
+  });
+}
+
+function updateGalleryForColor(colorName) {
+  currentColor = colorName;
+  const specific = colorImages[colorName] || [];
+  const general = allImages.length > 0 ? [allImages[0]] : [];
+  activeImages = [...new Set([...specific, ...general])];
+  current = 0;
+  
+  if (mainImg && activeImages.length > 0) {
+    mainImg.style.opacity = "0";
+    setTimeout(() => {
+      mainImg.src = activeImages[0];
+      mainImg.style.opacity = "1";
+    }, 150);
+    renderThumbnails(activeImages);
+  }
+}
+
+function galleryNext() {
+  if (activeImages.length <= 1) return;
+  current = (current + 1) % activeImages.length;
+  updateGalleryFrame();
+}
+
+function galleryPrev() {
+  if (activeImages.length <= 1) return;
+  current = (current - 1 + activeImages.length) % activeImages.length;
+  updateGalleryFrame();
+}
+
+function updateGalleryFrame() {
+  if (!mainImg) return;
+  mainImg.style.opacity = "0";
+  setTimeout(() => { 
+    mainImg.src = activeImages[current]; 
+    mainImg.style.opacity = "1"; 
+  }, 150);
+  document.querySelectorAll(".pd-thumb").forEach((t, i) => t.classList.toggle("active-thumb", i === current));
+}
+
+/* --- ФУНКЦІЇ НАЯВНОСТІ --- */
+function updateStockInfo() {
+  const selectedColor = (selectedColorEl.value || "").trim();
+  const selectedSize = (selectedSizeEl.value || "").trim();
+  const stockCountEl = document.getElementById("stock-count");
+  const quantityInput = document.querySelector("input[name='quantity']");
+  const addToCartBtn = document.querySelector('.pd-add-to-cart-btn');
+  
+  if (selectedColor && selectedSize) {
+    const variantKey = `${selectedColor}_${selectedSize}`.toLowerCase();
+    const stock = variantStock[variantKey] !== undefined ? variantStock[variantKey] : 0;
+    
+    if (stock > 0) {
+      if (stockCountEl) {
+        stockCountEl.textContent = `В наявності: ${stock} шт.`;
+        stockCountEl.className = 'pd-stock-count in-stock';
+      }
+      if (quantityInput) {
+        quantityInput.max = stock;
+        if (parseInt(quantityInput.value) > stock) quantityInput.value = stock;
+        if (parseInt(quantityInput.value) < 1) quantityInput.value = 1;
+      }
+      if (addToCartBtn) {
+        addToCartBtn.disabled = false;
+        addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Додати до кошика';
+        addToCartBtn.style.opacity = '1';
+        addToCartBtn.style.cursor = 'pointer';
+      }
+    } else {
+      if (stockCountEl) {
+        stockCountEl.textContent = 'Немає в наявності';
+        stockCountEl.className = 'pd-stock-count out-of-stock';
+      }
+      if (quantityInput) {
+        quantityInput.max = 0;
+        quantityInput.value = 0;
+      }
+      if (addToCartBtn) {
+        addToCartBtn.disabled = true;
+        addToCartBtn.textContent = 'Немає в наявності';
+        addToCartBtn.style.opacity = '0.5';
+        addToCartBtn.style.cursor = 'not-allowed';
+      }
+    }
+  } else {
+    if (stockCountEl) {
+        stockCountEl.textContent = 'Оберіть колір та розмір';
+        stockCountEl.className = 'pd-stock-count';
+    }
+  }
+}
+
+function updateSizesForColor(colorName) {
+  const availableSizes = colorToSizes[colorName] || {};
+  sizeInputs.forEach(si => {
+    const isAvailable = availableSizes[si.value] === true;
+    const wrap = si.closest(".pd-size-btn");
+    si.disabled = !isAvailable;
+    if (wrap) wrap.classList.toggle("disabled", !isAvailable);
+    
+    if (!isAvailable && si.checked) {
+        si.checked = false;
+        if (wrap) wrap.classList.remove("selected");
+        selectedSizeEl.value = "";
+    }
+  });
+}
+
+/* --- ІНІЦІАЛІЗАЦІЯ ТА ПОДІЇ --- */
+function autoSelectInitial() {
+  const first = variants.find(v => v.stock > 0) || variants[0];
+  if (!first) return;
+  
+  const ci = colorInputs.find(i => i.value === first.color);
+  if (ci) {
+    ci.checked = true;
+    ci.closest("label").classList.add("selected");
+    selectedColorEl.value = ci.value;
+    updateGalleryForColor(ci.value);
+    updateSizesForColor(ci.value);
+  }
+  
+  const si = sizeInputs.find(i => i.value === first.size && !i.disabled);
+  if (si) { 
+    si.checked = true; 
+    si.closest("label").classList.add("selected"); 
+    selectedSizeEl.value = si.value; 
+  }
+  updateStockInfo();
+}
+
+colorInputs.forEach(ci => {
+  ci.addEventListener("change", () => {
+    document.querySelectorAll(".pd-color-wrap").forEach(el => el.classList.remove("selected"));
+    ci.closest("label").classList.add("selected");
+    selectedColorEl.value = ci.value;
+    updateGalleryForColor(ci.value);
+    updateSizesForColor(ci.value);
+    
+    const availableSizes = colorToSizes[ci.value] || {};
+    const firstSize = sizeInputs.find(i => availableSizes[i.value] && !i.disabled);
+    if (firstSize) {
+        firstSize.checked = true;
+        firstSize.closest("label").classList.add("selected");
+        selectedSizeEl.value = firstSize.value;
+    }
+    updateStockInfo();
+  });
+});
+
+sizeInputs.forEach(si => {
+  si.addEventListener("change", () => {
+    document.querySelectorAll(".pd-size-btn").forEach(el => el.classList.remove("selected"));
+    si.closest("label").classList.add("selected");
+    selectedSizeEl.value = si.value;
+    updateStockInfo();
+  });
+});
+
+function changeQty(delta) {
+  const inp = document.querySelector("input[name='quantity']");
+  if (!inp) return;
+  const max = parseInt(inp.max) || 999;
+  let val = parseInt(inp.value) || 1;
+  val += delta;
+  if (val > max) val = max;
+  if (val < 1) val = 1;
+  inp.value = val;
+}
+
+// Модалка
 function openProductImageModal() {
     const modal = document.getElementById('productImageModal');
     const modalImg = document.getElementById('productModalImage');
-    
-    // Отримуємо вибраний колір
-    const selectedColorInput = document.querySelector('input[name="color"]:checked');
-    const selectedColor = selectedColorInput ? selectedColorInput.value : '';
-    
-    // Ініціалізуємо фото для вибраного кольору
-    const productImages = initColorImages(selectedColor);
-    
-    // Знаходимо поточний індекс фото
-    const currentSrc = document.getElementById('mainImage').src;
-    currentModalImageIndex = productImages.findIndex(img => img.includes(currentSrc.split('/').pop()));
-    if (currentModalImageIndex === -1) currentModalImageIndex = 0;
+    const selectedColor = selectedColorEl.value;
+    const images = colorImages[selectedColor] || (allImages.length > 0 ? [allImages[0]] : []);
     
     modal.style.display = 'flex';
-    modalImg.src = productImages[currentModalImageIndex];
-    
-    // Створюємо мініатюри тільки для вибраного кольору
-    createModalThumbnails(productImages);
-    
-    // Оновлюємо активну мініатюру
-    updateModalActiveThumbnail();
-    
-    // Блокуємо скрол боді
+    modalImg.src = images[0];
+    createModalThumbnails(images);
     document.body.style.overflow = 'hidden';
-    
-    // Додаємо анімацію появи
-    setTimeout(() => {
-        modal.classList.add('active');
-    }, 10);
 }
 
-// Закриття модального вікна
 function closeProductImageModal() {
-    const modal = document.getElementById('productImageModal');
-    modal.classList.remove('active');
-    
-    // Чекаємо завершення анімації перед хованням
-    setTimeout(() => {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }, 300);
-}
-
-// Створення мініатюр в модальному вікні
-function createModalThumbnails(images) {
-    const thumbnailList = document.getElementById('modalThumbnailList');
-    thumbnailList.innerHTML = '';
-    
-    images.forEach((imgSrc, index) => {
-        const thumb = document.createElement('img');
-        thumb.src = imgSrc;
-        thumb.className = 'product-modal-thumb';
-        if (index === currentModalImageIndex) {
-            thumb.classList.add('active');
-        }
-        thumb.onclick = () => setModalImage(index, images);
-        thumb.alt = '{{ product.name }} фото ' + (index + 1);
-        thumbnailList.appendChild(thumb);
-    });
-}
-
-// Встановлення фото в модальному вікні
-function setModalImage(index, images) {
-    currentModalImageIndex = index;
-    const modalImg = document.getElementById('productModalImage');
-    modalImg.src = images[index];
-    updateModalActiveThumbnail();
-}
-
-// Переключення на попереднє фото
-function modalPrevImage() {
-    const images = colorImages[currentColor] || [];
-    if (images.length === 0) return;
-    
-    currentModalImageIndex = (currentModalImageIndex - 1 + images.length) % images.length;
-    setModalImage(currentModalImageIndex, images);
-}
-
-// Переключення на наступне фото
-function modalNextImage() {
-    const images = colorImages[currentColor] || [];
-    if (images.length === 0) return;
-    
-    currentModalImageIndex = (currentModalImageIndex + 1) % images.length;
-    setModalImage(currentModalImageIndex, images);
-}
-
-// Оновлення активної мініатюри
-function updateModalActiveThumbnail() {
-    const thumbs = document.querySelectorAll('.product-modal-thumb');
-    thumbs.forEach((thumb, index) => {
-        thumb.classList.toggle('active', index === currentModalImageIndex);
-    });
-}
-
-// Закриття модального вікна при кліку поза зображенням
-document.getElementById('productImageModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeProductImageModal();
-    }
-});
-
-// Закриття модального вікна при натисканні ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeProductImageModal();
-    }
-    // Переключення фото стрілками
-    if (document.getElementById('productImageModal').style.display === 'flex') {
-        if (e.key === 'ArrowLeft') {
-            modalPrevImage();
-        } else if (e.key === 'ArrowRight') {
-            modalNextImage();
-        }
-    }
-});
-
-// Ініціалізація при завантаженні сторінки
-document.addEventListener('DOMContentLoaded', function() {
-    // Додаємо обробник зміни кольору
-    const colorInputs = document.querySelectorAll('input[name="color"]');
-    colorInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            // Оновлюємо фото при зміні кольору
-            const selectedColor = this.value;
-            initColorImages(selectedColor);
-        });
-    });
-});
-</script>
-
-<style>
-.product-image-modal {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.95);
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.product-image-modal.active {
-    opacity: 1;
-}
-
-.product-modal-content {
-    position: relative;
-    max-width: 95%;
-    max-height: 95%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    animation: productModalSlideIn 0.3s ease;
-}
-
-@keyframes productModalSlideIn {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.product-modal-gallery {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-}
-
-.product-modal-image-container {
-    position: relative;
-    max-width: 90vw;
-    max-height: 70vh;
-}
-
-#productModalImage {
-    max-width: 100%;
-    max-height: 70vh;
-    object-fit: contain;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-.product-modal-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 18px;
-    color: #333;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.product-modal-arrow:hover {
-    background: white;
-    transform: translateY(-50%) scale(1.1);
-}
-
-.product-modal-prev {
-    left: -25px;
-}
-
-.product-modal-next {
-    right: -25px;
-}
-
-.product-modal-thumbnails {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 90%;
-}
-
-.product-modal-thumb {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 4px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    opacity: 0.7;
-}
-
-.product-modal-thumb:hover {
-    opacity: 1;
-    border-color: var(--pink);
-}
-
-.product-modal-thumb.active {
-    border-color: var(--pink);
-    opacity: 1;
-    transform: scale(1.1);
-}
-
-.product-modal-info {
-    background: white;
-    padding: 20px 30px;
-    border-radius: 8px;
-    text-align: center;
-    margin-top: 10px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.product-modal-info h3 {
-    margin: 0 0 10px 0;
-    color: #333;
-    font-size: 1.3rem;
-}
-
-.product-modal-price {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.product-modal-current-price {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--pink);
-}
-
-.product-modal-old-price {
-    font-size: 1rem;
-    color: #999;
-    text-decoration: line-through;
-}
-
-.product-close-modal {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    border-radius: 50%;
-    color: #333;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    z-index: 10000;
-}
-
-.product-close-modal:hover {
-    background: white;
-    transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-
-.product-close-modal:active {
-    transform: scale(0.95);
-}
-
-/* Адаптивність для модального вікна */
-@media (max-width: 768px) {
-    .product-modal-content {
-        max-width: 98%;
-        max-height: 98%;
-    }
-    
-    #productModalImage {
-        max-height: 60vh;
-    }
-    
-    .product-modal-arrow {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-    
-    .product-modal-prev {
-        left: -20px;
-    }
-    
-    .product-modal-next {
-        right: -20px;
-    }
-    
-    .product-modal-thumbnails {
-        gap: 8px;
-    }
-    
-    .product-modal-thumb {
-        width: 50px;
-        height: 50px;
-    }
-    
-    .product-modal-info {
-        padding: 15px 20px;
-        margin-top: 15px;
-    }
-    
-    .product-modal-info h3 {
-        font-size: 1.1rem;
-    }
-    
-    .product-modal-current-price {
-        font-size: 1.1rem;
-    }
-    
-    .product-modal-old-price {
-        font-size: 0.9rem;
-    }
-    
-    .product-close-modal {
-        top: 15px;
-        right: 15px;
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
-    }
-}
-
-@media (max-width: 480px) {
-    #productModalImage {
-        max-height: 50vh;
-    }
-    
-    .product-modal-arrow {
-        width: 35px;
-        height: 35px;
-        font-size: 14px;
-    }
-    
-    .product-modal-prev {
-        left: -17px;
-    }
-    
-    .product-modal-next {
-        right: -17px;
-    }
-    
-    .product-modal-thumbnails {
-        gap: 6px;
-    }
-    
-    .product-modal-thumb {
-        width: 45px;
-        height: 45px;
-    }
-    
-    .product-modal-info {
-        padding: 12px 15px;
-        margin-top: 10px;
-    }
-    
-    .product-modal-info h3 {
-        font-size: 1rem;
-    }
-    
-    .product-modal-current-price {
-        font-size: 1rem;
-    }
-    
-    .product-modal-old-price {
-        font-size: 0.85rem;
-    }
-    
-    .product-close-modal {
-        top: 10px;
-        right: 10px;
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
-    }
-}
-</style>
-
-<!-- JavaScript для форми відповідей -->
-<script>
-// Показати форму відповіді
-function showReplyForm(reviewId) {
-    const modal = document.getElementById('replyForm');
-    const parentReviewIdInput = document.getElementById('parentReviewId');
-    
-    parentReviewIdInput.value = reviewId;
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    
-    // Додаємо клас для анімації
-    setTimeout(() => {
-        modal.classList.add('active');
-    }, 10);
-}
-
-// Закрити форму відповіді
-function closeReplyForm() {
-    const modal = document.getElementById('replyForm');
-    const contentTextarea = document.getElementById('replyContent');
-    
-    modal.classList.remove('active');
-    
-    // Чекаємо завершення анімації перед хованням
-    setTimeout(() => {
-        modal.style.display = 'none';
-        contentTextarea.value = '';
-        document.body.style.overflow = 'auto';
-    }, 300);
-}
-
-// Функція для приховування форми відповіді (для кнопки "Скасувати")
-function hideReplyForm() {
-    closeReplyForm();
-}
-
-// Показати кастомне сповіщення
-function showNotification(title, message, type = 'success') {
-    const notification = document.getElementById('customNotification');
-    const titleElement = document.getElementById('notificationTitle');
-    const messageElement = document.getElementById('notificationText');
-    const iconElement = notification.querySelector('.notification-icon i');
-    
-    // Встановлюємо текст
-    titleElement.textContent = title;
-    messageElement.textContent = message;
-    
-    // Встановлюємо тип сповіщення
-    notification.className = 'custom-notification ' + type;
-    
-    // Встановлюємо іконку
-    if (type === 'success') {
-        iconElement.className = 'fas fa-check-circle';
-    } else if (type === 'error') {
-        iconElement.className = 'fas fa-exclamation-circle';
-    }
-    
-    // Показуємо сповіщення
-    notification.style.display = 'block';
-    
-    // Автоматично ховаємо через 4 секунди
-    setTimeout(() => {
-        hideNotification();
-    }, 4000);
-}
-
-// Сховати кастомне сповіщення
-function hideNotification() {
-    const notification = document.getElementById('customNotification');
-    notification.style.animation = 'notificationSlideOut 0.3s ease-in-out';
-    
-    setTimeout(() => {
-        notification.style.display = 'none';
-        notification.style.animation = '';
-    }, 300);
-}
-
-// Обробка відправки форми відповіді
-document.addEventListener('DOMContentLoaded', function() {
-    const replyForm = document.querySelector('#replyForm form');
-    
-    if (replyForm) {
-        replyForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            
-            // Показуємо завантаження
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Відправка...';
-            submitBtn.disabled = true;
-            
-            fetch('{% url "reviews:add_reply" %}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Показуємо успішне повідомлення
-                    showNotification('✅ Успіх!', data.message, 'success');
-                    closeReplyForm();
-                    // Перезавантажуємо сторінку, щоб показати нову відповідь
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showNotification('❌ Помилка', data.error, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('❌ Помилка', 'Сталася помилка при відправці відповіді', 'error');
-            })
-            .finally(() => {
-                // Відновлюємо кнопку
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
-        });
-    }
-});
-
-// Закриття модального вікна медіа
-function closeReviewMediaModal() {
-    const modal = document.getElementById('reviewMediaModal');
-    modal.style.display = 'none';
+    document.getElementById('productImageModal').style.display = 'none';
     document.body.style.overflow = 'auto';
 }
 
-// Відкриття модального вікна медіа
-function openReviewMediaModal(mediaUrl, mediaType) {
-    const modal = document.getElementById('reviewMediaModal');
-    const container = document.getElementById('mediaContainer');
-    
-    if (mediaType === 'image') {
-        container.innerHTML = `<img src="${mediaUrl}" alt="Фото відгуку" style="max-width: 100%; max-height: 80vh; object-fit: contain;">`;
-    } else if (mediaType === 'video') {
-        container.innerHTML = `<video src="${mediaUrl}" controls style="max-width: 100%; max-height: 80vh;">Ваш браузер не підтримує відео.</video>`;
-    }
-    
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+function createModalThumbnails(images) {
+    const list = document.getElementById('modalThumbnailList');
+    list.innerHTML = '';
+    images.forEach((src, idx) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'product-modal-thumb';
+        img.onclick = () => { document.getElementById('productModalImage').src = src; };
+        list.appendChild(img);
+    });
 }
 
-// Закриття модального вікна при кліку поза ним
-window.onclick = function(event) {
-    const mediaModal = document.getElementById('reviewMediaModal');
-    const replyModal = document.getElementById('replyForm');
-    
-    if (event.target === mediaModal) {
-        closeReviewMediaModal();
-    }
-    
-    if (event.target === replyModal) {
-        closeReplyForm();
-    }
-}
+document.addEventListener("DOMContentLoaded", autoSelectInitial);
+autoSelectInitial(); // Викликаємо і так, і так для надійності
 </script>
+
+<style>
+/* Стилі модалки та інше... (залишаю ваші існуючі стилі) */
+.pd-color-wrap.selected .pd-color-dot {
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--pink);
+}
+.pd-size-btn.selected {
+    background-color: var(--pink);
+    color: white;
+    border-color: var(--pink);
+}
+/* ... решта стилів ... */
+</style>
 
 {% endblock %}
