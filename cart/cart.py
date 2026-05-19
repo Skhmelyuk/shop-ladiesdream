@@ -17,7 +17,7 @@ class Cart:
         self._purge_missing_products()
 
 
-    def add(self, product, quantity=1, override_quantity=False, price=None, color='', size='', variant_image=''):
+    def add(self, product, quantity=1, override_quantity=False, price=None, color='', size='', variant_image='', variant_id=None):
         """
         Додати товар до кошика або оновити його кількість.
         Ключ: product_id_color_size (унікальний для кожного варіанту)
@@ -39,7 +39,8 @@ class Cart:
                 'color': color,
                 'size': size,
                 'variant_image': variant_image,
-                'product_id': product.id  # Зберігаємо ID для пошуку продукту
+                'product_id': product.id,
+                'variant_id': variant_id
             }
         
         self.cart[cart_key]['price'] = str(current_price)
@@ -48,6 +49,8 @@ class Cart:
         self.cart[cart_key]['color'] = color
         self.cart[cart_key]['size'] = size
         self.cart[cart_key]['variant_image'] = variant_image
+        if variant_id:
+            self.cart[cart_key]['variant_id'] = variant_id
 
         if override_quantity:
             self.cart[cart_key]['quantity'] = quantity
@@ -109,6 +112,68 @@ class Cart:
         self.session['cart_last_purge'] = time.time()
         self.session.modified = True
 
+    def validate(self):
+        """
+        Перевіряє наявність товарів у кошику та корегує кількість відповідно до залишку.
+        """
+        from main.models import ProductVariant
+        updated = False
+        keys_to_remove = []
+        
+        # Працюємо безпосередньо з self.cart
+        for cart_key, item in list(self.cart.items()):
+            product_id = cart_key.split('_')[0]
+            color = item.get('color', '')
+            size = item.get('size', '')
+            
+            variant_id = item.get('variant_id')
+            variant = None
+            
+            # Спроба знайти по ID
+            if variant_id:
+                variant = ProductVariant.objects.filter(id=variant_id).first()
+            
+            if not variant:
+                variant_query = ProductVariant.objects.filter(product_id=product_id)
+                if color:
+                    variant_query = variant_query.filter(color__name__iexact=color)
+                else:
+                    from main.models import Product
+                    product = Product.objects.filter(id=product_id).first()
+                    if product and product.variants.filter(color__isnull=False).exists():
+                        variant_query = variant_query.filter(color__isnull=True)
+                
+                if size:
+                    variant_query = variant_query.filter(size__name__iexact=size)
+                
+                variant = variant_query.first()
+            
+            if variant:
+                stock = variant.stock
+                # Оновлюємо ID якщо він не був заданий
+                if not variant_id:
+                    item['variant_id'] = variant.id
+            else:
+                # Fallback
+                q = ProductVariant.objects.filter(product_id=product_id)
+                if color: q = q.filter(color__name__icontains=color)
+                if size: q = q.filter(size__name__icontains=size)
+                stock = sum(v.stock for v in q)
+            
+            if item['quantity'] > stock:
+                if stock <= 0:
+                    keys_to_remove.append(cart_key)
+                else:
+                    item['quantity'] = stock
+                updated = True
+                
+        for key in keys_to_remove:
+            del self.cart[key]
+            
+        if updated:
+            self.save()
+        return updated
+
     def save(self):
         self.session.modified = True
 
@@ -134,13 +199,8 @@ class Cart:
         """
         Перебір елементів у кошику та отримання товарів з бази даних.
         """
-        # Отримуємо унікальні product_id з ключів кошика
-        product_ids = set()
-        for cart_key in self.cart.keys():
-            # Витягуємо product_id з ключа формата "product_id_color_size"
-            product_id = cart_key.split('_')[0]
-            product_ids.add(product_id)
-        
+        from main.models import Product, ProductVariant
+        product_ids = set(cart_key.split('_')[0] for cart_key in self.cart.keys())
         products = Product.objects.filter(id__in=product_ids)
 
         import copy
@@ -151,17 +211,32 @@ class Cart:
         for cart_key, item in cart.items():
             product_id = cart_key.split('_')[0]
             if product_id in product_dict:
-                item['product'] = product_dict[product_id]
+                product = product_dict[product_id]
+                item['product'] = product
                 item['price'] = Decimal(item['price'])
                 item['total_price'] = item['price'] * item['quantity']
                 
-                # Переконуємось що всі поля існують для сумісності
-                if 'color' not in item:
-                    item['color'] = ''
-                if 'size' not in item:
-                    item['size'] = ''
-                if 'variant_image' not in item:
-                    item['variant_image'] = ''
+                # Знаходимо залишок для цього варіанту
+                variant_id = item.get('variant_id')
+                variant = None
+                if variant_id:
+                    variant = ProductVariant.objects.filter(id=variant_id).first()
+                
+                if not variant:
+                    # Пошук за параметрами якщо ID немає
+                    item_color = item.get('color', '')
+                    item_size = item.get('size', '')
+                    v_query = ProductVariant.objects.filter(product=product)
+                    if item_color: v_query = v_query.filter(color__name__iexact=item_color)
+                    if item_size: v_query = v_query.filter(size__name__iexact=item_size)
+                    variant = v_query.first()
+                
+                if variant:
+                    item['available_stock'] = variant.stock
+                    item['max_quantity'] = variant.stock
+                else:
+                    item['available_stock'] = sum(v.stock for v in product.variants.all())
+                    item['max_quantity'] = item['available_stock']
                     
                 yield item
 

@@ -76,8 +76,6 @@ body {
 
 main {
     padding: 30px 0;
-    max-width: 1200px;
-    margin: 0 auto;
     width: 100%;
 }
 
@@ -123,17 +121,51 @@ a:hover {
 /* ---------- ШАПКА (HEADER) ---------- */
 header {
     background-color: var(--white);
-    padding: 15px 0;
-    border-bottom: 1px solid var(--light-pink);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    position: relative; /* Для позиціонування кнопки фільтра */
+    box-shadow: 0 2px 16px rgba(243, 7, 148, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    will-change: transform;
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.32s ease;
 }
 
-.main-nav {
+/* При скролі вниз — JS встановлює transform динамічно */
+
+/* === ВЕРХНІЙ РЯДОК: логотип + кнопки === */
+.header-top {
+    border-bottom: 1px solid #fce4ec;
+    background-color: #fff;
+}
+
+.header-top-inner {
     display: flex;
-    align-items: center; /* Центрування по вертикалі */
-    padding: 10px 0;
-    gap: 20px;
+    align-items: center;
+    height: 64px;
+    gap: 16px;
+}
+
+/* Кнопка бургер */
+.filter-menu-toggle {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-right: 4px;
+}
+
+.filter-menu-toggle:hover {
+    color: var(--pink);
+    background-color: #fff0f6;
 }
 
 /* Логотип */
@@ -141,108 +173,258 @@ header {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-right: 20px;
+    text-decoration: none;
+    flex-shrink: 0;
 }
 
 .header-logo {
-    height: 35px;
-    width: 35px;
+    height: 36px;
+    width: 36px;
     object-fit: contain;
     border: 2px solid var(--pink);
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .site-title {
-    font-size: 1.8em;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 800;
     color: var(--pink);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     margin: 0;
+    white-space: nowrap;
 }
 
-/* Навігація десктоп */
+/* Кнопки користувача — у правій частині */
+.user-nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.user-nav a {
+    padding: 7px 18px;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    border: 2px solid var(--pink);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+.btn-login, .btn-profile {
+    background-color: transparent;
+    color: var(--pink);
+}
+
+.btn-login:hover, .btn-profile:hover {
+    background-color: var(--pink);
+    color: white;
+}
+
+.btn-register, .btn-admin, .btn-logout {
+    background-color: var(--pink);
+    color: white;
+}
+
+.btn-register:hover, .btn-admin:hover, .btn-logout:hover {
+    background-color: #d4006b;
+    border-color: #d4006b;
+}
+
+/* === НИЖНІЙ РЯДОК: навігація === */
+.header-bottom {
+    background: linear-gradient(to right, #fff0f8, #ffffff, #fff0f8);
+    border-bottom: 3px solid var(--pink);
+}
+
+/* Навігаційне меню */
 .primary-nav ul {
     display: flex;
     list-style: none;
-    gap: 35px;
+    gap: 0;
     margin: 0;
     padding: 0;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
+}
+
+.primary-nav ul li {
+    height: 100%;
+    display: flex;
+    align-items: center;
 }
 
 .primary-nav ul li a {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    height: 100%;
+    padding: 0 22px;
     text-decoration: none;
-    color: var(--dark-grey);
-    font-weight: 700; /* Жирніший шрифт */
-    font-size: 1.25rem; /* Збільшений розмір (було ~1rem) */
-    transition: color 0.3s ease;
-    text-transform: uppercase; /* Опціонально: робить меню більш солідним */
-    letter-spacing: 0.5px;
+    color: #555;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    transition: all 0.2s ease;
+    position: relative;
+    white-space: nowrap;
+    line-height: normal !important;
+    text-align: center !important;
+}
+
+.primary-nav ul li a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--pink);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
 }
 
 .primary-nav ul li a:hover {
     color: var(--pink);
 }
 
-.nav-item.cart-icon i {
-    font-size: 1.3rem;
-    margin-right: 5px;
+.primary-nav ul li a:hover::after {
+    transform: scaleX(1);
 }
-/* Кнопки користувача */
-.user-nav {
-    /* display: flex;
-    align-items: center;
-    gap: 10px; */
+
+/* Wishlist в навігації */
+/* Серце в навігації */
+#wishlist-badge {
+    position: relative;
+    padding: 0 18px;
+    height: 100%;
     display: flex;
-    gap: 15px;
-    margin-left: auto;
+    align-items: center;
+    justify-content: center;
+    color: #ff4d6d;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+    margin-right: 0;
 }
 
-.user-nav a {
-    padding: 8px 15px;
-    border-radius: 5px;
-    font-size: 0.9em;
-    font-weight: bold;
-    transition: all var(--transition);
-    border: 2px solid var(--pink);
-}
-
-.btn-login, .btn-register, .btn-profile {
-    background-color: var(--white);
-    color: var(--pink);
-}
-
-.btn-logout, .btn-admin {
-    background-color: var(--pink);
-    color: var(--white);
-}
-
-/* Кнопка три полоски (Фільтр) */
-.filter-menu-toggle {
-    background: none;
-    border: none;
-    color: var(--pink);
+#wishlist-badge i {
     font-size: 1.8rem;
-    cursor: pointer;
-    padding: 5px;
-    margin-right: 15px;
-    display: block; /* Видно завжди, якщо є сайдбар */
+    color: #ff4d6d;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    filter: drop-shadow(0 2px 4px rgba(255, 77, 109, 0.3));
 }
 
-/* Інформаційний рядок (привітання + кількість товарів) */
-.user-info-header {
+#wishlist-badge:hover i {
+    transform: scale(1.15);
+    filter: drop-shadow(0 3px 8px rgba(255, 77, 109, 0.5));
+}
+
+#wishlist-badge .badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -72%);
+    background: white;
+    color: var(--pink);
+    font-size: 0.6rem;
+    font-weight: 800;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 6px 0 4px;
+    justify-content: center;
+    border: 1.5px solid var(--pink);
+    line-height: 1;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Іконка кошика */
+.nav-item.cart-icon {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    padding: 0 22px;
+    color: #555;
+    transition: color 0.2s;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    position: relative;
+}
+
+.nav-item.cart-icon::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--pink);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+}
+
+.nav-item.cart-icon:hover {
+    color: var(--pink);
+}
+
+.nav-item.cart-icon:hover::after {
+    transform: scaleX(1);
+}
+
+.nav-item.cart-icon i {
+    font-size: 1.1rem;
+}
+
+.cart-count-badge {
+    background: var(--pink);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Старий .main-nav — більше не потрібен, але залишаємо для сумісності */
+.main-nav {
+    display: flex;
+    align-items: center;
+    height: 64px;
+    gap: 16px;
+}
+
+/* Інформаційний рядок */
+.user-info-header {
+    background: #fffbfe;
     border-top: 1px solid #fce4ec;
-    font-size: 0.82rem;
-    color: #b06090;
-    gap: 12px;
+    padding: 5px 0;
+    font-size: 0.78rem;
+    color: #999;
 }
 
 .user-info-header span:first-child {
     font-weight: 500;
+    color: #b06090;
 }
 
 .user-info-header span:first-child::before {
@@ -252,7 +434,7 @@ header {
 .product-count {
     background: linear-gradient(90deg, var(--pink), #e055a0);
     color: #fff;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
     padding: 2px 10px;
     border-radius: 20px;
@@ -260,64 +442,150 @@ header {
     white-space: nowrap;
 }
 
+
 /* ---------- АДАПТИВНІСТЬ ШАПКИ (MOBILE) ---------- */
 @media (max-width: 768px) {
+
+    /* ── Загальне ── */
     header {
-        padding: 10px 0;
+        padding: 0;
     }
 
-    .main-nav {
-        flex-direction: column;
-        gap: 15px;
-        align-items: center;
+    /* ── Верхній рядок: один рядок, без переносів ── */
+    .header-top-inner {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        height: 52px !important;
+        gap: 6px !important;
+        padding: 0 12px !important;
+        overflow: hidden;
     }
 
-    /* Стабілізація кнопки фільтра */
+    /* Бургер */
     .filter-menu-toggle {
-        position: absolute;
-        left: 15px;
-        top: 15px;
-        margin: 0;
-        
+        position: static !important;
+        flex-shrink: 0;
+        padding: 6px 8px !important;
+        font-size: 1.2rem !important;
+        margin: 0 !important;
     }
 
+    /* Лого — іконка + назва в один рядок */
     .logo-link {
-        margin-right: 0; /* Прибираємо десктопний відступ */
-        padding-left: 0;
-        justify-content: center;
+        flex-shrink: 0;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 6px !important;
     }
 
-    .primary-nav {
-        order: 2;
-        width: 100%;
-    }
-
-    .primary-nav ul {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        width: 100%;
-    }
-
-    .primary-nav ul li a {
-        display: block;
-        background-color: var(--white);
-        border: 1px solid var(--light-pink);
-        border-radius: 8px;
-        text-align: center;
-        font-size: 1rem;
-        padding: 12px 5px;
-    }
-
-    .user-nav {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
+    .header-logo {
+        height: 28px !important;
+        width: 28px !important;
     }
 
     .site-title {
-        font-size: 1.4em;
+        font-size: 1rem !important;
+        letter-spacing: 0.5px !important;
+        white-space: nowrap;
+    }
+
+    /* Кнопки Адмін/Профіль/Вийти — ПОВНІСТЮ СХОВАНІ */
+    .user-nav {
+        display: none !important;
+    }
+
+    /* ── Нижній рядок: навігація + серце + кошик ── */
+    .header-bottom {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none !important;
+    }
+
+    .header-bottom::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* Знімаємо padding з container щоб скрол йшов від краю */
+    .header-bottom > .container {
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .primary-nav {
+        width: 100% !important;
+    }
+
+    .primary-nav ul {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        height: 44px !important;
+        width: max-content !important;
+        min-width: 100% !important;
+        gap: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .primary-nav ul li {
+        height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        flex: 0 0 auto !important;
+        width: auto !important;
+    }
+
+    .primary-nav ul li a {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        height: 44px !important;
+        padding: 0 16px !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;
+        letter-spacing: 0.3px !important;
+        text-align: left !important;
+        background: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        line-height: normal !important;
+    }
+
+    /* Серце */
+    #wishlist-badge {
+        padding: 0 14px !important;
+        height: 44px !important;
+        font-size: 1rem !important;
+    }
+
+    #wishlist-badge i {
+        font-size: 1.4rem !important;
+    }
+
+    /* Кошик */
+    .nav-item.cart-icon {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        height: 44px !important;
+        padding: 0 16px !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;
+        gap: 5px !important;
+    }
+
+    /* Інфо-рядок */
+    .user-info-header {
+        font-size: 0.72rem !important;
+        padding: 4px 12px !important;
+    }
+
+    .main-nav {
+        height: auto;
     }
 }
 
@@ -379,6 +647,17 @@ header {
     background: rgba(255,255,255,0.35);
 }
 
+.sidebar-header .sf-reset {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+.sidebar-header .sf-reset:hover {
+    background: rgba(255,255,255,0.35);
+    color: #fff;
+    transform: rotate(-30deg);
+}
+
 .sidebar-body {
     padding: 20px 0 16px;
 }
@@ -415,21 +694,20 @@ body.no-scroll::after {
     background-color: var(--white);
     border-radius: 12px;
     border: 1px solid #f2cde4;
-    padding: 15px;
+    padding: 0; /* Видалено відступи для картинки по всій ширині */
     transition: transform 0.25s ease, box-shadow 0.25s ease;
     display: flex;
     flex-direction: column;
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
 .product-card img {
     width: 100%;
     height: 280px;
-    object-fit: contain;
+    object-fit: cover;
     border-radius: 8px;
     margin-bottom: 12px;
     background: #fdf5f9;
@@ -441,24 +719,6 @@ body.no-scroll::after {
     font-weight: 700;
 }
 
-.product-card .price {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--pink);
-    margin: 10px 0;
-}
-
-.add-to-cart {
-    background-color: var(--pink);
-    color: var(--white);
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-    margin-top: auto;
-}
 
 .add-to-cart:hover {
     background-color: #ff85c1;
@@ -533,89 +793,8 @@ a:hover {
     color: #e55a9b;
 }
 
-header {
-    background-color: var(--white);
-    padding: 15px 0;
-    border-bottom: 1px solid var(--light-pink);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    animation: fadeInUp 0.8s ease-out 0.2s backwards;
-}
+/* Старий дублікат header — видалено, стилі визначені вище */
 
-.main-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.header-logo {
-    height: 35px;
-    width: 35px;
-    object-fit: contain;
-    border: 2px solid var(--pink);
-    border-radius: 4px;
-}
-
-.site-title {
-    font-size: 2.2em;
-    font-weight: 700;
-    color: var(--pink);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0;
-}
-
-
-
-.primary-nav a:hover {
-    color: var(--pink);
-}
-
-/* Кнопки користувача */
-
-.user-nav {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.user-nav a {
-    padding: 8px 12px;
-    border-radius: 5px;
-    font-size: 0.9em;
-    font-weight: bold;
-    transition: all var(--transition);
-    white-space: nowrap;
-}
-
-/* Кнопки дій */
-
-.btn-login, .btn-register, .btn-profile {
-    background-color: var(--white);
-    color: var(--pink);
-    border: 2px solid var(--pink);
-}
-
-.btn-login:hover, .btn-register:hover, .btn-profile:hover {
-    background-color: var(--light-pink);
-}
-
-.btn-logout, .btn-admin {
-    background-color: var(--pink);
-    color: var(--white);
-    border: 2px solid var(--pink);
-}
-
-.btn-logout:hover, .btn-admin:hover {
-    background-color: #e5579f;
-}
 
 .product-list {
     display: grid;
@@ -630,7 +809,6 @@ header {
 .product-card {
     background: var(--white);
     border-radius: 16px;
-    border: 1px solid #f0f0f0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
@@ -641,25 +819,24 @@ header {
 }
 
 .product-card:hover {
-    transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border-color: var(--pink);
+
 }
 
 .product-card-image {
     position: relative;
     width: 100%;
-    height: 240px;
+    height: 300px;
     overflow: hidden;
-    background: #fafafa;
-    cursor: zoom-in;
+    background: #f8f8f8;
 }
 
 .product-card-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: none;
+    object-position: top;
+    transition: transform 0.3s ease, transform-origin 0.1s ease-out;
 }
 
 .no-image-placeholder {
@@ -797,7 +974,6 @@ header {
 }
 
 .btn-view-product:hover {
-    transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(233, 30, 99, 0.3);
     background: linear-gradient(135deg, #ff85c1, var(--pink));
 }
@@ -947,30 +1123,6 @@ header {
 }
 
 
-.product-card img {
-    width: 100%;
-    height: 280px;
-    object-fit: contain;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    background: #fdf5f9;
-}
-
-.product-card h3 a {
-    color: var(--medium-grey);
-    font-weight: 600;
-    transition: color 0.3s;
-    margin: 6px 0 8px 0;
-    font-size: 1.15rem;
-    line-height: 1.2;
-}
-
-.product-card h3 a:hover {
-    color: var(--pink);
-}
-
-.product-card p {
-    font-size: 0.95em;
     color: #555;
     flex-grow: 1;
 }
@@ -1270,28 +1422,6 @@ footer a {
     color: var(--pink);
 }
 
-/* Базові стилі для навігації (десктоп) */
-.main-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap; /* Дозволяємо перенос елементів */
-    padding: 10px 0;
-}
-
-.primary-nav ul {
-    display: flex;
-    list-style: none;
-    gap: 20px;
-    margin: 0;
-    padding: 0;
-}
-
-.primary-nav ul li a {
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-}
 
 /* АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ТА ПЛАНШЕТІВ */
 @media (max-width: 768px) {
@@ -1329,7 +1459,9 @@ footer a {
 
     /* Стилізуємо посилання як кнопки */
     .primary-nav ul li a {
-        display: block;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
         background-color: #f8f9fa; /* Світлий фон */
         border: 1px solid #ddd;
         border-radius: 8px;
@@ -1337,6 +1469,7 @@ footer a {
         text-align: center;
         font-size: 14px;
         transition: all 0.3s ease;
+        line-height: 1.1 !important;
     }
 
     .primary-nav ul li a:hover {
@@ -2107,14 +2240,17 @@ body.no-scroll::after {
 
 /* --- ГАЛЕРЕЯ --- */
 .pd-gallery {
-    flex: 0 0 420px;
+    flex: 0 0 540px;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
     position: relative;
 }
 
 .pd-sale-badge {
     position: absolute;
     top: 12px;
-    left: 12px;
+    right: 12px;
     background: linear-gradient(135deg, var(--pink), #e0489e);
     color: #fff;
     font-size: 0.82rem;
@@ -2132,65 +2268,82 @@ body.no-scroll::after {
     overflow: hidden;
     background: #fafafa;
     border: 1px solid #f0e0eb;
+    flex: 1;
 }
 
 .pd-main-image img {
     width: 100%;
-    height: 480px;
+    height: 580px;
     object-fit: contain;
     display: block;
     transition: opacity 0.15s ease;
     background: #fafafa;
 }
 
-.pd-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.88);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+
+.pd-thumbnails-wrapper {
+    position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    color: var(--dark-grey);
-    font-size: 0.9rem;
-    transition: background 0.2s ease, transform 0.2s ease;
-    z-index: 4;
+    width: 90px;
+    height: 580px;
+    flex-shrink: 0;
 }
-
-.pd-arrow:hover {
-    background: var(--pink);
-    color: #fff;
-    transform: translateY(-50%) scale(1.08);
-}
-
-.pd-arrow-prev { left: 10px; }
-.pd-arrow-next { right: 10px; }
 
 .pd-thumbnails {
     display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--pink) #f5e6ef;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+    overflow-y: hidden; /* Hide scrollbar */
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    flex-shrink: 0;
+}
+
+.pd-thumb-arrow {
+    background: none;
+    border: none;
+    color: var(--pink);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    width: 100%;
+    display: none; /* Hidden by default, shown via JS if overflow */
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.pd-thumb-arrow:hover {
+    background: rgba(255, 105, 180, 0.1);
+    color: #ff4081;
+}
+
+.pd-thumb-arrow.active {
+    display: flex;
+}
+
+.pd-thumb-up {
+    margin-bottom: 5px;
+}
+
+.pd-thumb-down {
+    margin-top: 5px;
 }
 
 .pd-thumb {
     width: 80px;
-    height: 80px;
+    height: 100px;
     object-fit: cover;
     border-radius: 8px;
     cursor: pointer;
     border: 2px solid transparent;
     opacity: 0.75;
-    transition: opacity 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    transition: all 0.2s ease;
     flex-shrink: 0;
 }
 
@@ -4787,28 +4940,334 @@ body.no-scroll::after {
 }
 
 /* Бейдж в шапці */
-#wishlist-badge {
-    position: relative;
-    font-size: 1.2rem;
-    margin-right: 15px;
+/* Дублікат wishlist-badge — прибраний на користь головних стилів вище */
+
+/* ============================================================
+   СТОРІНКА СПИСКУ БАЖАНЬ (PINTEREST STYLE)
+   ============================================================ */
+
+/* Hero-заголовок */
+.wishlist-hero {
+    background: transparent;
+    padding: 30px 0 20px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.wishlist-hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.wishlist-hero-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--pink);
     display: flex;
     align-items: center;
-    color: #333;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+    flex-shrink: 0;
+}
+
+.wishlist-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #111;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.wishlist-subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Обгортка сторінки */
+.wishlist-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px 80px;
+}
+
+/* Сітка товарів (Masonry-like) */
+.wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+/* Картка товару */
+.wl-card {
+    background: transparent;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+}
+
+.wl-card-link {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    color: inherit;
     text-decoration: none;
 }
 
-#wishlist-badge i {
-    color: #ff4d4d;
+/* Зображення */
+.wl-card-img-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3/4.2;
+    background: #f0f0f0;
+    overflow: hidden;
 }
 
-#wishlist-badge .badge {
+.wl-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.wl-card:hover .wl-card-img {
+    transform: scale(1.05);
+}
+
+.wl-card-no-img {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ddd;
+    font-size: 3rem;
+}
+
+/* SALE бейдж */
+.wl-sale-badge {
     position: absolute;
-    top: -8px;
-    right: -10px;
-    background-color: var(--pink);
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, var(--pink), #e055a0);
     color: white;
-    font-size: 0.7rem;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 10px;
-}
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    z-index: 5;
+}
+
+/* Оверлей з інфо (з'являється знизу) */
+.wl-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 40px 16px 16px;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 2;
+}
+
+.wl-card:hover .wl-card-overlay {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.wl-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wl-card-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.wl-card-price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.wl-old-price {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: line-through;
+}
+
+.wl-current-price {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffb3ce;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* Кнопка "Переглянути" */
+.wl-btn-view {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    color: white;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: background 0.2s, transform 0.2s;
+}
+
+.wl-btn-view:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.02);
+}
+
+/* Кнопка видалення (серце) */
+.wl-remove-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+}
+
+.wl-remove-btn .wishlist-btn {
+    width: 38px;
+    height: 38px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(4px);
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.wl-remove-btn .wishlist-btn:hover {
+    background: #fff;
+    transform: scale(1.1);
+}
+
+/* Мобільні пристрої (немає hover) */
+@media (hover: none) {
+    .wl-card-overlay {
+        transform: translateY(0);
+        opacity: 1;
+        padding: 40px 12px 12px;
+        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+    }
+    .wl-btn-view {
+        display: none;
+    }
+    .wl-card-name {
+        font-size: 0.9rem;
+    }
+    .wl-current-price {
+        font-size: 1.1rem;
+    }
+}
+
+/* Порожній стан */
+.wl-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+    gap: 16px;
+}
+
+.wl-empty-heart {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fff0f6, #ffd6e8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    color: #f4a0c0;
+    margin-bottom: 8px;
+    animation: heartbeat 3s ease-in-out infinite;
+}
+
+.wl-empty-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2d2d2d;
+    margin: 0;
+}
+
+.wl-empty-text {
+    font-size: 0.95rem;
+    color: #aaa;
+    margin: 0;
+    max-width: 380px;
+    line-height: 1.6;
+}
+
+.wl-btn-catalog {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, var(--pink), #e055a0);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.3);
+}
+
+.wl-btn-catalog:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(233, 30, 99, 0.4);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .wishlist-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 720px) {
+    .wishlist-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .wishlist-title { font-size: 1.5rem; }
+    .wishlist-hero { padding: 24px 0 20px; }
+}
+@media (max-width: 420px) {
+    .wishlist-grid { grid-template-columns: 1fr; }
+}

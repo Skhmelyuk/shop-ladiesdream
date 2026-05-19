@@ -3,11 +3,11 @@
         install freeze lint clean
 
 ifeq ($(OS),Windows_NT)
-	PYTHON  = venv/Scripts/python
-	PIP     = venv/Scripts/pip
+PYTHON  = venv/Scripts/python
+PIP     = venv/Scripts/pip
 else
-	PYTHON  = venv/bin/python
-	PIP     = venv/bin/pip
+PYTHON  = venv/bin/python
+PIP     = venv/bin/pip
 endif
 MANAGE  = $(PYTHON) manage.py
 

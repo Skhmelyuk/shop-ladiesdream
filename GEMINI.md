@@ -4,8 +4,13 @@
 LadiesDream is a comprehensive e-commerce platform built with Django. It features a robust product management system with support for variants (size and color), categories, and suppliers. The platform includes customer accounts, a shopping cart, a wishlist, order processing with Nova Poshta integration, and a discount/promo code system.
 
 ### Main Technologies
-- **Backend:** [Django 5.2.7](https://www.djangoproject.com/), [PostgreSQL](https://www.postgresql.org/), [Redis](https://redis.io/) (for caching and sessions).
-- **Frontend:** [Tailwind CSS](https://tailwindcss.com/) (compiled via npm), [HTMX](https://htmx.org/) for dynamic interactions.
+- **Backend:**  [Django 5.2.7](https://www.djangoproject.com/), 
+                [PostgreSQL](https://www.postgresql.org/), 
+                [Redis](https://redis.io/) (for caching and sessions).
+
+- **Frontend:** [Tailwind CSS](https://tailwindcss.com/) (compiled via npm), 
+                [HTMX](https://htmx.org/) for dynamic interactions.
+                
 - **Integrations:**
   - [Nova Poshta API](https://devcenter.novaposhta.ua/) for delivery services.
   - [LiqPay](https://www.liqpay.ua/) for payment processing.

@@ -15,7 +15,7 @@
                 {% for item in cart %}
                     <tr class="cart-item-row">
                         <td class="cart-item-photo">
-                            <a href="{{ item.product.get_absolute_url }}">
+                            <a href="{{ item.product.get_absolute_url }}" hx-boost="false">
                                 {% if item.variant_image %}
                                     <img src="{{ item.variant_image }}" alt="{{ item.product.name }}" class="cart-item-image">
                                 {% elif item.product.image %}
@@ -27,7 +27,7 @@
                         <td class="cart-item-info">
                             <div class="item-details">
                                 <h3 class="item-name">
-                                    <a href="{{ item.product.get_absolute_url }}" class="item-link">
+                                    <a href="{{ item.product.get_absolute_url }}" class="item-link" hx-boost="false">
                                         {{ item.product.name }}
                                     </a>
                                 </h3>
@@ -59,11 +59,17 @@
                                            name="quantity" 
                                            x-model="qty"
                                            @input="if(qty > maxQty) qty = maxQty; if(qty < 1) qty = 1"
+                                           hx-post="{% url 'cart:cart_add' item.product.id %}"
+                                           hx-trigger="change"
+                                           hx-target="#cart-container"
+                                           hx-swap="outerHTML"
+                                           hx-include="closest form"
                                            min="1" 
                                            :max="maxQty"
                                            :disabled="maxQty === 0"
                                            class="quantity-input">
                                     <button type="submit" class="btn-update" 
+                                            :class="{'opacity-50 pointer-events-none': qty == {{ item.quantity }} }"
                                             :disabled="maxQty === 0 || qty == 0">
                                         <i class="fas fa-sync"></i>
                                     </button>
@@ -114,10 +120,10 @@
                 </div>
                 
                 <div class="cart-summary-actions">
-                    <a href="{% url 'main:product-list' %}" class="btn btn-outline-secondary btn-continue">
+                    <a href="{% url 'main:product-list' %}" class="btn btn-outline-secondary btn-continue" hx-boost="false">
                         <i class="fas fa-arrow-left me-2"></i>Продовжити покупки
                     </a>
-                    <a href="{% url 'orders:order_create' %}" class="btn btn-pink btn-checkout">
+                    <a href="{% url 'orders:order_create' %}" class="btn btn-pink btn-checkout" hx-boost="false">
                         <i class="fas fa-shopping-bag me-2"></i>Оформити замовлення
                     </a>
                 </div>
@@ -131,7 +137,7 @@
             </div>
             <h3 class="empty-cart-title">Ваш кошик порожній</h3>
             <p class="empty-cart-description">У кошику немає товарів. Перейдіть до каталогу, щоб додати товари.</p>
-            <a href="{% url 'main:product-list' %}" class="btn btn-pink">
+            <a href="{% url 'main:product-list' %}" class="btn btn-pink" hx-boost="false">
                 <i class="fas fa-shopping-bag me-2"></i>Перейти до каталогу
             </a>
         </div>

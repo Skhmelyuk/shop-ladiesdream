@@ -118,7 +118,7 @@
                             </div>
                         {% endif %}
                         
-                        <div class="wishlist-btn-wrapper" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                        <div class="wishlist-btn-wrapper" style="position: absolute; top: 10px; left: 10px; z-index: 10;">
                             {% if product.id|stringformat:"s" in wishlist.wishlist %}
                                 {% with in_wishlist=True %}
                                     {% include "wishlist/partials/wishlist_button.html" %}
@@ -211,3 +211,39 @@
     </div>
     </div>
 </div>
+<script>
+document.addEventListener('mousemove', function(e) {
+    const container = e.target.closest('.product-card-image');
+    if (!container) return;
+    
+    const img = container.querySelector('img');
+    if (!img) return;
+    
+    const rect = container.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    img.style.transformOrigin = `${x}% ${y}%`;
+    img.style.transform = 'scale(1.8)';
+});
+
+document.addEventListener('mouseover', function(e) {
+    const container = e.target.closest('.product-card-image');
+    if (container) {
+        const img = container.querySelector('img');
+        if (img) img.style.transition = 'transform 0.1s ease-out';
+    }
+});
+
+document.addEventListener('mouseout', function(e) {
+    const container = e.target.closest('.product-card-image');
+    if (container) {
+        const img = container.querySelector('img');
+        if (img) {
+            img.style.transformOrigin = 'center';
+            img.style.transform = 'scale(1)';
+            img.style.transition = 'transform 0.3s ease';
+        }
+    }
+});
+</script>

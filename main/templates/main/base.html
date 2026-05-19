@@ -203,34 +203,122 @@
                 }, 5000);
             }
         });
+
+        // Зберігаємо стан sidebar перед заміною DOM, та відновлюємо після
+        let _sidebarWasOpen = false;
+        document.addEventListener('htmx:beforeSwap', () => {
+            const body = document.body;
+            _sidebarWasOpen = body._x_dataStack && body._x_dataStack[0]
+                ? body._x_dataStack[0].sidebarOpen
+                : false;
+        });
+        document.addEventListener('htmx:afterSwap', () => {
+            if (_sidebarWasOpen) {
+                const body = document.body;
+                if (body._x_dataStack && body._x_dataStack[0]) {
+                    body._x_dataStack[0].sidebarOpen = true;
+                }
+            }
+        });
+    </script>
+
+    <script>
+        // Smart sticky header: GPU-анімація через transform (без reflow)
+        (function() {
+            const SCROLL_THRESHOLD = 80;
+            let lastScrollY = window.scrollY;
+            let ticking = false;
+
+            function getHideOffset() {
+                // Ховаємо top-bar + header-top (логотип + кнопки)
+                const topBar = document.querySelector('header .top-bar');
+                const headerTop = document.querySelector('.header-top');
+                const offset = (topBar ? topBar.offsetHeight : 0) +
+                               (headerTop ? headerTop.offsetHeight : 0);
+                return offset;
+            }
+
+            function setBodyPadding() {
+                const header = document.querySelector('header');
+                if (header) {
+                    document.body.style.paddingTop = header.offsetHeight + 'px';
+                }
+            }
+
+            function onScroll() {
+                const currentScrollY = window.scrollY;
+                const header = document.querySelector('header');
+                if (!header) return;
+
+                if (currentScrollY > SCROLL_THRESHOLD && currentScrollY > lastScrollY) {
+                    const offset = getHideOffset();
+                    header.style.transform = `translateY(-${offset}px)`;
+                } else if (currentScrollY < lastScrollY) {
+                    header.style.transform = 'translateY(0)';
+                }
+
+                lastScrollY = currentScrollY;
+                ticking = false;
+            }
+
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    requestAnimationFrame(onScroll);
+                    ticking = true;
+                }
+            }, { passive: true });
+
+            window.addEventListener('DOMContentLoaded', setBodyPadding);
+            window.addEventListener('resize', setBodyPadding);
+            setBodyPadding();
+        })();
     </script>
 </head>
 <body x-data="{ sidebarOpen: false }" :class="{ 'no-scroll': sidebarOpen }" hx-boost="true">
     <div class="htmx-progress"></div>
     <div id="htmx-error-msg" class="htmx-error-message"></div>
 
-<div class="top-bar">
-    <div class="container top-bar-content">
-        <span class="scrolling-text" aria-hidden="true">
-            Постійні акції та знижки! При замовленні на 2000 грн — доставка безкоштовно!
-            15% знижки імениннику! ★ Постійні акції та знижки! При замовленні на 2000 грн — доставка безкоштовно!
-            15% знижки імениннику! ★
-        </span>
-    </div>
-</div>
+
 
 <header>
-    <div class="container">
-        <div class="main-nav">
+    <div class="top-bar">
+        <div class="container top-bar-content">
+            <span class="scrolling-text" aria-hidden="true">
+                Постійні акції та знижки! При замовленні на 2000 грн — доставка безкоштовно!
+                15% знижки імениннику! ★ Постійні акції та знижки! При замовленні на 2000 грн — доставка безкоштовно!
+                15% знижки імениннику! ★
+            </span>
+        </div>
+    </div>
+
+    <div class="header-top">
+        <div class="container header-top-inner">
             <button class="filter-menu-toggle" id="filter-menu-toggle" @click.stop="sidebarOpen = !sidebarOpen">
                 <i class="fas fa-bars"></i>
-            </button>            
-            
+            </button>
+
             <a href="{% url 'main:product-list' %}" class="logo-link">
                 <img src="{% static 'main/favicon.ico' %}" alt="LadiesDream Logo" class="header-logo">
                 <span class="site-title">LadiesDream</span>
             </a>
 
+            <nav class="user-nav">
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin:index' %}" class="btn-admin" hx-boost="false">Адмін</a>
+                    {% endif %}
+                    <a href="{% url 'accounts:profile' %}" class="btn-profile">Профіль</a>
+                    <a href="{% url 'account_logout' %}" class="btn-logout" hx-boost="false">Вийти</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="btn-login">Вхід</a>
+                    <a href="{% url 'account_signup' %}" class="btn-register">Реєстрація</a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+
+    <div class="header-bottom">
+        <div class="container">
             <nav class="primary-nav">
                 <ul>
                     <li><a href="{% url 'main:product-list' %}">Каталог</a></li>
@@ -242,32 +330,21 @@
                     <li>
                         <a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon" id="nav-cart-badge">
                             <i class="fas fa-shopping-cart"></i>
-                            Кошик
+                            <span>Кошик</span>
                             {% with total_items=cart|length %}
                                 {% if total_items > 0 %}
-                                    <span class="cart-count">({{ total_items }})</span>
+                                    <span class="cart-count-badge">{{ total_items }}</span>
                                 {% endif %}
                             {% endwith %}
                         </a>
                     </li>
                 </ul>
             </nav>
-
-            <nav class="user-nav">
-                {% if user.is_authenticated %}
-                    {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" class="btn-admin" hx-boost="false">Адмін панель</a>
-                    {% endif %}
-                    <a href="{% url 'accounts:profile' %}" class="btn-profile">Профіль</a>
-                    <a href="{% url 'account_logout' %}" class="btn-logout" hx-boost="false">Вийти</a>
-                {% else %}
-                    <a href="{% url 'account_login' %}" class="btn-login">Вхід</a>
-                    <a href="{% url 'account_signup' %}" class="btn-register">Реєстрація</a>
-                {% endif %}
-            </nav>
         </div>
+    </div>
 
-        <div class="user-info-header">
+    <div class="user-info-header">
+        <div class="container d-flex justify-content-between align-items-center">
             <span>{% user_greeting user %}</span>
             <span class="product-count">У каталозі: {% get_products_count %} товарів</span>
         </div>
@@ -312,11 +389,23 @@
         </template>
     </div>
 
-<div id="site-layout">
 <aside class="sidebar" id="sidebar" :class="{ 'active': sidebarOpen }" @click.outside="sidebarOpen = false">
     <div class="sidebar-header">
         <span class="sidebar-title">Фільтри</span>
-        <button class="sidebar-close" id="sidebar-close-btn" @click="sidebarOpen = false">✕</button>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <button type="button" class="sf-reset" title="Скинути всі фільтри"
+               @click="
+                   const form = document.getElementById('sidebarFilterForm');
+                   if (form) {
+                       form.querySelectorAll('input[type=checkbox]').forEach(el => el.checked = false);
+                       setTimeout(() => htmx.trigger(form, 'submit'), 50);
+                   }
+               "
+               style="border: none; cursor: pointer;">
+                <i class="fas fa-undo"></i>
+            </button>
+            <button class="sidebar-close" id="sidebar-close-btn" @click="sidebarOpen = false">✕</button>
+        </div>
     </div>
     <div class="sidebar-body">
     {% block sidebar %}
@@ -325,6 +414,7 @@
     </div>
 </aside>
 
+<div id="site-layout">
 <div class="page-wrapper w-100">
 <main>
     <div class="container">
@@ -340,5 +430,6 @@
 </div>
 </div>
 
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
