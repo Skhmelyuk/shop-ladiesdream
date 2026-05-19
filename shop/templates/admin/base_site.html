@@ -11,10 +11,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
-    height: 56px;
+    padding: 10px 24px;
+    min-height: 56px;
+    height: auto;
     background: linear-gradient(135deg, #e91e8c 0%, #ff69b4 100%);
     box-shadow: 0 2px 12px rgba(233,30,99,0.35);
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 #branding {
@@ -43,7 +46,8 @@
     gap: 6px;
     font-size: 0.82rem;
     color: rgba(255,255,255,0.9);
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 #user-tools strong {
@@ -93,16 +97,17 @@
 #admin-nav-menu {
     background: #fff;
     border-bottom: 2px solid #f8bbd0;
-    padding: 0 24px;
+    padding: 4px 24px;
     display: flex;
     gap: 4px;
     align-items: center;
     box-shadow: 0 2px 6px rgba(233,30,99,0.08);
+    flex-wrap: wrap;
 }
 
 #admin-nav-menu .nav-item {
     display: inline-block;
-    padding: 10px 16px;
+    padding: 8px 12px;
     color: #666;
     text-decoration: none;
     font-size: 0.85rem;

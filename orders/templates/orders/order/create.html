@@ -6,8 +6,10 @@
 {% block title %}Оформлення замовлення{% endblock %}
 
 {% block content %}
-<div class="checkout-container">
-    <h1>Оформлення замовлення</h1>
+<div class="checkout-wrapper">
+    <div class="checkout-header">
+        <h1>Оформлення замовлення</h1>
+    </div>
 
     {% if order %}
         <div class="confirmation-card">
@@ -32,94 +34,404 @@
             {% endif %}
         </div>
     {% else %}
-        <form method="post" id="order-form" x-data="checkoutApp()">
+        <form method="post" id="order-form" x-data="checkoutApp()" class="checkout-layout">
             {% csrf_token %}
-            <div class="form-section">
-                <h3>Ваші дані</h3>
-                <div>{{ form.first_name.label_tag }} {{ form.first_name }}</div>
-                <div>{{ form.last_name.label_tag }} {{ form.last_name }}</div>
-                <div>{{ form.email.label_tag }} {{ form.email }}</div>
-                <div>{{ form.phone.label_tag }} {{ form.phone }}</div>
-            </div>
-
-            <div class="form-section">
-                <h3>Доставка</h3>
-                <div>{{ form.delivery_type.label_tag }} {% render_field form.delivery_type x-model="deliveryType" %}</div>
-                <div>
-                    <label for="id_city_input">Місто доставки</label>
-                    <input type="text" id="id_city_input" name="city" autocomplete="off"
-                           x-model.debounce.300ms="cityQuery" 
-                           :disabled="deliveryType !== 'NP' && deliveryType !== 'UP' && deliveryType !== 'COURIER'">
-                    <div id="city_suggestions" class="autocomplete-list" x-show="citySuggestions.length > 0" @click.outside="citySuggestions = []" style="display: none;">
-                        <template x-for="city in citySuggestions" :key="city.Ref">
-                            <div class="np-suggestion-item" @click="selectCity(city)">
-                                <span x-html="highlightMatch([city.MainDescription || city.Present, city.Area].filter(Boolean).join(', '), cityQuery)"></span>
-                            </div>
-                        </template>
+            
+            <!-- Ліва колонка (Форма) -->
+            <div class="checkout-main">
+                <div class="form-section">
+                    <h3>Контактні дані</h3>
+                    <div class="form-row">
+                        <div class="form-col form-group">
+                            {{ form.first_name.label_tag }} 
+                            {{ form.first_name }}
+                        </div>
+                        <div class="form-col form-group">
+                            {{ form.last_name.label_tag }} 
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.email.label_tag }} 
+                        {{ form.email }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.phone.label_tag }} 
+                        {{ form.phone }}
                     </div>
                 </div>
-                <div>
-                    <label for="id_address_input">Адреса / відділення</label>
-                    <div style="position: relative;">
-                        <input type="text" id="id_address_input" name="delivery_address" autocomplete="off"
-                               x-model="addressQuery"
-                               :placeholder="addressPlaceholder"
-                               :readonly="isAddressReadonly">
-                        <div id="address_suggestions" class="np-suggestions" x-show="addressSuggestions.length > 0" @click.outside="addressSuggestions = []" style="display: none;">
-                            <template x-for="w in addressSuggestions" :key="w.Ref">
-                                <div class="np-suggestion-item" @click="selectAddress(w)">
-                                    <span x-html="highlightMatch(`${w.Description} (${w.Number})`, addressQuery)"></span>
-                                </div>
-                            </template>
+
+                <div class="form-section">
+                    <h3>Доставка</h3>
+                    <div class="form-group">
+                        {{ form.delivery_type.label_tag }} 
+                        {% render_field form.delivery_type x-model="deliveryType" %}
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col form-group" style="position: relative;">
+                            <label for="id_city_input">Місто доставки</label>
+                            <input type="text" id="id_city_input" name="city" autocomplete="off"
+                                   x-model.debounce.300ms="cityQuery" 
+                                   :disabled="deliveryType !== 'NP' && deliveryType !== 'UP' && deliveryType !== 'COURIER'">
+                            <div id="city_suggestions" class="autocomplete-list" x-show="citySuggestions.length > 0" @click.outside="citySuggestions = []" style="display: none;">
+                                <template x-for="city in citySuggestions" :key="city.Ref">
+                                    <div class="np-suggestion-item" @click="selectCity(city)">
+                                        <span x-html="highlightMatch([city.MainDescription || city.Present, city.Area].filter(Boolean).join(', '), cityQuery)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <div class="form-col form-group" style="position: relative;">
+                            <label for="id_address_input">Адреса / відділення</label>
+                            <input type="text" id="id_address_input" name="delivery_address" autocomplete="off"
+                                   x-model="addressQuery"
+                                   :placeholder="addressPlaceholder"
+                                   :readonly="isAddressReadonly">
+                            <div id="address_suggestions" class="np-suggestions" x-show="addressSuggestions.length > 0" @click.outside="addressSuggestions = []" style="display: none;">
+                                <template x-for="w in addressSuggestions" :key="w.Ref">
+                                    <div class="np-suggestion-item" @click="selectAddress(w)">
+                                        <span x-html="highlightMatch(`${w.Description} (${w.Number})`, addressQuery)"></span>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <div class="form-section">
+                    <h3>Оплата</h3>
+                    <div class="form-group">
+                        {{ form.payment_method.label_tag }} 
+                        {{ form.payment_method }}
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">Підтвердити замовлення</button>
             </div>
 
-            <div class="form-section">
-                <h3>Промокод</h3>
-                <input type="text" id="promo-code" placeholder="Введіть промокод" x-model="promoCode">
-                <button type="button" id="apply-promo" class="btn-submit" @click="applyPromo()">Застосувати</button>
-                <p id="promo-info" x-show="promoInfo" x-text="promoInfo" :class="promoSuccess ? 'text-success' : 'text-danger'" style="display: none;"></p>
-                {% if request.session.promo_discount %}
-                    <p x-show="!promoInfo" class="text-success">✅ Промокод застосовано: -{{ request.session.promo_discount }} грн</p>
-                {% endif %}
-            </div>
+            <!-- Права колонка (Замовлення) -->
+            <div class="checkout-sidebar">
+                <div class="form-section" style="margin-bottom: 24px;">
+                    <h3>Ваше замовлення</h3>
+                    <ul class="order-items">
+                        {% for item in cart %}
+                            <li class="order-item">
+                                <span class="order-item-name">{{ item.product.name }} <span class="text-gray-500">× {{ item.quantity }}</span></span>
+                                <span class="order-item-price">{{ item.price|floatformat:2 }} грн</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
-            <div class="form-section">
-                <h3>Оплата</h3>
-                <div>{{ form.payment_method.label_tag }} {{ form.payment_method }}</div>
-            </div>
+                <div class="form-section" style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #eaeaea;">
+                    <h3 style="font-size: 1rem;">Маєте промокод?</h3>
+                    <div class="promo-box">
+                        <input type="text" id="promo-code" placeholder="Введіть код" x-model="promoCode">
+                        <button type="button" id="apply-promo" @click="applyPromo()">Застосувати</button>
+                    </div>
+                    <p id="promo-info" x-show="promoInfo" x-text="promoInfo" :class="promoSuccess ? 'text-success' : 'text-danger'" style="display: none; margin: 8px 0 0; font-size: 0.85rem; font-weight: 600;"></p>
+                    {% if request.session.promo_discount %}
+                        <p x-show="!promoInfo" class="text-success" style="margin: 8px 0 0; font-size: 0.85rem; font-weight: 600; color: #10b981;">✅ Застосовано знижку: -{{ request.session.promo_discount }} грн</p>
+                    {% endif %}
+                </div>
 
-            <div class="form-section">
-                <h3>Ваше замовлення</h3>
-                <ul>
-                    {% for item in cart %}
-                        <li>{{ item.product.name }} × {{ item.quantity }} = {{ item.price|floatformat:2 }} грн</li>
-                    {% endfor %}
-                </ul>
-                <p>Сума до сплати: <strong x-text="totalPrice.toFixed(2)"></strong> грн</p>
+                <div class="order-totals">
+                    <div class="total-row">
+                        <span>До сплати</span>
+                        <span class="price"><span x-text="totalPrice.toFixed(2)"></span> грн</span>
+                    </div>
+                </div>
             </div>
-
-            <button type="submit" class="btn-submit">Підтвердити замовлення</button>
+            
         </form>
     {% endif %}
 </div>
 
 <style>
-.checkout-container { max-width: 700px; margin: 50px auto; padding: 30px; background-color: #fff0f5; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
-h1 { color: #e91e63; text-align: center; margin-bottom: 25px; }
-.form-section { background-color: #ffe6f0; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-.form-section h3 { color: #d81b60; margin-bottom: 15px; }
-input, select { width: 100%; padding: 10px 15px; margin-top: 5px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ffc1e3; background-color: #fff0f5; }
-button.btn-submit { width: 100%; padding: 15px; background-color: #ff80ab; color: white; font-size: 1.2rem; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-button.btn-submit:hover { background-color: #d81b60; }
-.confirmation-card { text-align: center; padding: 25px; border-radius: 15px; background-color: #fff0f5; box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
-.btn-liqpay { margin-top: 15px; padding: 12px 40px; background-color: #ff4081; color: #fff; font-size: 1.2rem; font-weight: bold; border-radius: 50px; border: none; cursor: pointer; }
-.btn-liqpay:hover { background-color: #d81b60; transform: translateY(-2px); transition: 0.2s; }
-.autocomplete-list, .np-suggestions { background: #fff; border: 1px solid #ffc1e3; border-radius: 10px; max-height: 200px; overflow-y: auto; position: absolute; z-index: 1000; width: calc(100% - 20px); padding-left: 0; margin-top: 0; list-style: none; }
-.np-suggestion-item { padding: 8px 12px; cursor: pointer; }
-.np-suggestion-item:hover { background-color: #ffe6f0; }
+/* Загальна обгортка */
+.checkout-wrapper {
+    max-width: 1100px;
+    margin: 40px auto 80px;
+    padding: 0 15px;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.checkout-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.checkout-header h1 {
+    color: #111;
+    font-weight: 800;
+    font-size: 2.2rem;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+/* Сітка */
+.checkout-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.checkout-main {
+    flex: 1 1 60%;
+    min-width: 320px;
+}
+
+.checkout-sidebar {
+    flex: 1 1 35%;
+    min-width: 320px;
+    background: #fafafa;
+    border-radius: 16px;
+    padding: 30px;
+    position: sticky;
+    top: 24px;
+    border: 1px solid #eaeaea;
+}
+
+/* Секції форми */
+.form-section {
+    margin-bottom: 36px;
+}
+
+.form-section h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Форми та інпути */
+.form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-col {
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--pink, #ff69b4);
+    box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.15);
+}
+
+/* Кнопка підтвердження */
+button.btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--pink, #f30794), #c2185b);
+    color: white;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    margin-top: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(226, 12, 126, 0.3);
+}
+
+/* Товари в кошику (Сайдбар) */
+.order-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+    gap: 16px;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.order-item-name {
+    color: #333;
+    font-weight: 500;
+    flex: 1;
+    line-height: 1.4;
+}
+
+.order-item-price {
+    font-weight: 600;
+    color: #111;
+    white-space: nowrap;
+}
+
+/* Промокод */
+.promo-box {
+    display: flex;
+    gap: 10px;
+}
+
+.promo-box input {
+    margin-bottom: 0;
+    padding: 10px 14px;
+}
+
+.promo-box button {
+    padding: 0 20px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.promo-box button:hover {
+    background: #111;
+}
+
+.text-success { color: #10b981; }
+.text-danger { color: #ef4444; }
+
+/* Сума */
+.order-totals {
+    margin-top: 10px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #111;
+}
+
+.total-row span.price {
+    color: var(--pink, #e91e63);
+    font-size: 1.4rem;
+}
+
+/* Сторінка подяки */
+.confirmation-card {
+    text-align: center;
+    padding: 50px 30px;
+    border-radius: 20px;
+    background-color: #fafafa;
+    border: 1px solid #eaeaea;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.confirmation-card h2 {
+    color: #111;
+    margin-bottom: 20px;
+}
+
+.btn-liqpay {
+    margin-top: 24px;
+    padding: 14px 40px;
+    background-color: #333;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-liqpay:hover {
+    background-color: #111;
+    transform: translateY(-2px);
+}
+
+/* Автодоповнення Нової Пошти */
+.autocomplete-list, .np-suggestions { 
+    background: #fff; 
+    border: 1px solid #eee; 
+    border-radius: 8px; 
+    max-height: 250px; 
+    overflow-y: auto; 
+    position: absolute; 
+    z-index: 1000; 
+    width: 100%; 
+    padding: 0; 
+    margin-top: 4px; 
+    list-style: none; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+}
+.np-suggestion-item { 
+    padding: 12px 16px; 
+    cursor: pointer; 
+    border-bottom: 1px solid #f5f5f5; 
+    font-size: 0.9rem; 
+    color: #444;
+}
+.np-suggestion-item:last-child {
+    border-bottom: none;
+}
+.np-suggestion-item:hover { 
+    background-color: #f8f9fa; 
+    color: var(--pink, #e91e63); 
+}
+
+/* Мобільна адаптація */
+@media (max-width: 800px) {
+    .checkout-layout { 
+        flex-direction: column; 
+        gap: 30px;
+    }
+    .checkout-sidebar { 
+        position: static; 
+        margin-bottom: 20px; 
+        order: -1; /* Сайдбар зверху на мобільних */
+    }
+    .form-row { 
+        flex-direction: column; 
+        gap: 0; 
+    }
+}
 </style>
 
 <script>

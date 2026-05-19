@@ -102,11 +102,12 @@ def order_create(request):
             except Exception as e:
                 logger.error(f"Помилка відправки листа для замовлення {order.id}: {e}", exc_info=True)
 
-            # Оплата LiqPay
             liqpay_data = None
             if form.cleaned_data['payment_method'] == 'online':
                 params = {
-                    'order_id': order.id,
+                    'action': 'pay',
+                    'version': '3',
+                    'order_id': str(order.id),
                     'amount': str(order.final_price),
                     'description': f'Оплата замовлення №{order.id}',
                     'currency': 'UAH',

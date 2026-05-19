@@ -1,9 +1,17 @@
-<a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon" id="nav-cart-badge" hx-swap-oob="true">
-    <i class="fas fa-shopping-cart"></i>
-    Кошик
-    {% with total_items=cart|length %}
-        {% if total_items > 0 %}
-            <span class="cart-count">({{ total_items }})</span>
-        {% endif %}
-    {% endwith %}
+<a href="{% url 'cart:cart_detail' %}" class="nav-cart-beautiful" id="nav-cart-badge" hx-swap-oob="true">
+    <div class="cart-icon-wrapper">
+        <i class="fas fa-shopping-bag"></i>
+        {% with total_items=cart|length %}
+            {% if total_items > 0 %}
+                <span class="beautiful-badge"
+                      x-data x-show="true"
+                      x-transition:enter="transition ease-out duration-300 transform"
+                      x-transition:enter-start="opacity-0 scale-50"
+                      x-transition:enter-end="opacity-100 scale-100">
+                    {{ total_items }}
+                </span>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <span class="cart-text">Кошик</span>
 </a>

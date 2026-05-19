@@ -4,7 +4,7 @@
 {% block title %}Мої Замовлення{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'main/account_style.css' %}">
+<link rel="stylesheet" href="{% static 'main/profile_styles.css' %}">
 
 <div class="account-container">
     <h1 class="section-header">Мої Замовлення</h1>
@@ -21,47 +21,80 @@
 
         <div class="content-panel">
             {% if orders %}
-                {% for order in orders %}
-                    <div class="order-card">
-                        <div class="order-header">
-                            <span class="order-number">Замовлення №{{ order.id }}</span>
-                            <span class="order-date">{{ order.created|date:"d.m.Y H:i" }}</span>
-                            <span class="order-status {% if order.paid %}paid{% else %}unpaid{% endif %}">
-                                Статус: {% if order.paid %}Оплачено{% else %}Очікує оплати{% endif %}
-                            </span>
+                <div class="accordion-list">
+                    {% for order in orders %}
+                        <div x-data="{ expanded: false }" class="accordion-card">
+                            <div class="accordion-header" @click="expanded = !expanded">
+                                <div class="acc-main-info">
+                                    <span class="acc-order-id">Замовлення №{{ order.id }}</span>
+                                    <span class="acc-date">{{ order.created|date:"d.m.Y H:i" }}</span>
+                                </div>
+                                
+                                <div class="acc-status-wrap" style="display: flex; gap: 6px;">
+                                    {% if order.status == 'cancelled' %}
+                                        <span class="acc-status cancelled">Скасовано</span>
+                                    {% else %}
+                                        <span class="acc-status {% if order.paid %}paid{% else %}unpaid{% endif %}">
+                                            {% if order.paid %}Оплачено{% else %}Очікує оплати{% endif %}
+                                        </span>
+                                        <span class="acc-status generic">{{ order.get_status_display }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="acc-total-wrap">
+                                    <span class="acc-total-label">Всього:</span>
+                                    <span class="acc-total-amount">{{ order.get_total_cost|floatformat:2 }} грн</span>
+                                </div>
+                                
+                                <div class="acc-toggle-wrap">
+                                    <div class="acc-toggle-btn">
+                                        <span class="view-details-text">Деталі</span>
+                                        <div class="arrow-circle" :class="{ 'expanded': expanded }">
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-body" x-show="expanded" x-transition.opacity style="display: none;">
+                                <div class="acc-items-list">
+                                    {% for item in order.items.all %}
+                                    <div class="acc-item-row">
+                                        <div class="acc-item-details-with-img">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="acc-product-img">
+                                            {% else %}
+                                                <div class="acc-product-img-placeholder"><i class="fas fa-image"></i></div>
+                                            {% endif %}
+                                            <span class="acc-item-name">{{ item.product.name }}</span>
+                                        </div>
+                                        <div class="acc-item-price-info">
+                                            <span class="acc-item-qty">{{ item.quantity }} шт.</span>
+                                            <strong class="acc-item-price">{{ item.get_cost|floatformat:2 }} грн</strong>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                {% if not order.paid and order.status != 'cancelled' %}
+                                <div class="acc-footer-actions">
+                                    <a href="{% url 'orders:payment_start' order.id %}" class="btn-acc-pay">
+                                        <i class="fas fa-credit-card"></i> Оплатити онлайн
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
-                        
-                        <div class="order-body">
-                            <ul class="order-items-list-history">
-                                {% for item in order.items.all %}
-                                <li class="item-history">
-                                    <span class="item-product-name">{{ item.product.name }}</span>
-                                    <span class="item-quantity">Кіл-ть: {{ item.quantity }}</span>
-                                    <span class="item-price">Вартість: {{ item.get_cost }} грн</span>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        
-                        <div class="order-footer">
-                            <span class="order-total">
-                               Загальна сума: **{{ order.get_total_cost }} грн**
-                            </span>
-    
-                            {% if not order.paid %}
-                                <a href="{% url 'orders:payment_start' order.id %}" class="btn btn-sm btn-warning ml-3">
-                                   Оплатити (LiqPay)
-                                </a>
-                            {% else %}
-                                <span class="text-success small ml-3">Оплачено</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             {% else %}
                 <div class="empty-state">
-                    <p>Ви ще не зробили жодного замовлення.</p>
-                    <a href="{% url 'main:product-list' %}" class="pink-button">Перейти до покупок</a>
+                    <div class="empty-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <h3>Ви ще не зробили жодного замовлення</h3>
+                    <p>Час потішити себе чимось новеньким з нашого каталогу!</p>
+                    <a href="{% url 'main:product-list' %}" class="btn-pink-gradient mt-3">Перейти до каталогу</a>
                 </div>
             {% endif %}
         </div>
@@ -69,103 +102,381 @@
 </div>
 
 <style>
-
-.order-card {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
-}
-
-.order-card:hover {
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.order-header {
+/* Accordion Orders Page Styles */
+.accordion-list {
     display: flex;
-    justify-content: space-between;
-    padding: 15px 20px;
-    background-color: #f8f8f8;
-    border-bottom: 1px solid #e0e0e0;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 10px;
 }
 
-.order-number {
+.accordion-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #f0e6eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.accordion-card:hover {
+    box-shadow: 0 6px 16px rgba(233, 30, 99, 0.06);
+}
+
+.accordion-header {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1.5fr auto;
+    align-items: center;
+    padding: 20px 24px;
+    cursor: pointer;
+    background: #fff;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.accordion-header:hover {
+    background: #fdfafb;
+}
+
+.acc-main-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.acc-order-id {
+    font-size: 1.1rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: #222;
 }
 
-.order-date {
-    font-size: 0.9em;
+.acc-date {
+    font-size: 0.85rem;
     color: #888;
 }
 
-.order-status {
-    padding: 3px 8px;
-    border-radius: 4px;
+.acc-status-wrap {
+    display: flex;
+    align-items: center;
+}
+
+.acc-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.acc-status.paid {
+    background: #e6f7ec;
+    color: #047857;
+}
+
+.acc-status.unpaid {
+    background: #ffe4e6;
+    color: #e11d48;
+}
+
+.acc-status.cancelled {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.acc-status.generic {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.acc-total-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-right: 20px;
+}
+
+.acc-total-label {
+    font-size: 0.95rem;
+    color: #555;
     font-weight: 600;
-    font-size: 0.9em;
 }
 
-.order-status.paid {
-    background-color: #d4edda;
-    color: #155724;
+.acc-total-amount {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #111;
 }
 
-.order-status.unpaid {
-    background-color: #fff3cd;
-    color: #856404;
+.acc-toggle-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
 }
 
-.order-body {
-    padding: 15px 20px;
+.acc-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #e91e63;
 }
 
-.order-items-list-history {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.view-details-text {
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
-.item-history {
+.arrow-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #fce4ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.arrow-circle.expanded {
+    transform: rotate(180deg);
+    background: #f8bbd0;
+}
+
+/* Accordion Body */
+.accordion-body {
+    padding: 0 24px 24px 24px;
+    border-top: 1px solid #f5f5f5;
+    background: #fafafa;
+}
+
+.acc-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 20px;
+}
+
+.acc-item-row {
     display: flex;
     justify-content: space-between;
-    font-size: 0.95em;
-    padding: 5px 0;
-    border-bottom: 1px dashed #eee;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #e5e5e5;
 }
 
-.item-history:last-child {
+.acc-item-row:last-child {
     border-bottom: none;
+    padding-bottom: 0;
 }
 
-.item-price {
-    font-weight: 600;
+.acc-item-details-with-img {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.order-footer {
-    padding: 10px 20px;
-    background-color: #f8f8f8;
-    border-top: 1px solid #e0e0e0;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+.acc-product-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #eee;
+    background: #fff;
+}
+
+.acc-product-img-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 1.2rem;
+}
+
+.acc-item-name {
+    font-size: 0.95rem;
+    color: #444;
+    font-weight: 500;
+}
+
+.acc-item-price-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.acc-item-qty {
+    color: #888;
+    font-size: 0.9rem;
+    min-width: 40px;
     text-align: right;
 }
 
-.order-total {
-    font-size: 1.1em;
-    font-weight: 700;
-    color: var(--dark-gray);
+.acc-item-price {
+    font-size: 1rem;
+    color: #222;
+    min-width: 80px;
+    text-align: right;
+}
+
+.acc-footer-actions {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-acc-pay {
+    background: linear-gradient(135deg, #e91e63, #c2185b);
+    color: white !important;
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(233, 30, 99, 0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-acc-pay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(233, 30, 99, 0.35);
 }
 
 .empty-state {
     text-align: center;
-    padding: 50px;
-    border: 2px dashed #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px dashed #e2d5dc;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #f8bbd0;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.empty-state p {
+    color: #777;
+    margin-bottom: 24px;
+}
+
+.btn-pink-gradient {
+    display: inline-block;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #e91e63, #f06292);
+    color: #fff !important;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.btn-pink-gradient:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .accordion-header {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 16px;
+    }
+    
+    .acc-main-info {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+    }
+    
+    .acc-status-wrap {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+        justify-content: flex-end;
+    }
+    
+    .acc-total-wrap {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        justify-content: flex-start;
+        padding-right: 0;
+    }
+    
+    .acc-toggle-wrap {
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+    }
+    
+    .view-details-text {
+        display: none;
+    }
+    
+    .acc-item-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .acc-item-price-info {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 560px) {
+    .accordion-header {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 12px;
+        padding: 16px;
+    }
+    
+    .acc-main-info {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+    }
+    
+    .acc-status-wrap {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .acc-total-wrap {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+    }
+    
+    .acc-toggle-wrap {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+    }
+    
+    .accordion-card {
+        position: relative;
+    }
+    
+    .btn-acc-pay {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 {% endblock %}

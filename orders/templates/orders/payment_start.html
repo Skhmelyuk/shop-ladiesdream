@@ -15,8 +15,7 @@
 
     <p class="lead">Натисніть кнопку нижче, щоб перейти до захищеної сторінки оплати LiqPay</p>
 
-    <form method="POST" action="https://www.sandbox.liqpay.ua/api/3/checkout" class="mt-4">
-        {% csrf_token %}
+    <form method="POST" action="https://www.liqpay.ua/api/3/checkout" accept-charset="utf-8" class="mt-4" hx-boost="false">
         <input type="hidden" name="data" value="{{ liqpay_data.data }}" />
         <input type="hidden" name="signature" value="{{ liqpay_data.signature }}" />
         

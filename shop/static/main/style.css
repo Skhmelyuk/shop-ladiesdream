@@ -77,6 +77,19 @@ body {
 main {
     padding: 30px 0;
     width: 100%;
+    flex: 1; /* Pushes footer to bottom */
+}
+
+#site-layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .container {
@@ -202,6 +215,10 @@ header {
     align-items: center;
     margin-left: auto;
     flex-shrink: 0;
+}
+
+.user-nav i {
+    margin-right: 6px;
 }
 
 .user-nav a {
@@ -405,6 +422,70 @@ header {
     justify-content: center;
 }
 
+/* Beautiful Nav Cart Button */
+.nav-cart-beautiful {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: transparent;
+    border-radius: 50px;
+    color: #444;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.nav-cart-beautiful:hover {
+    background: #fff5f8;
+    color: var(--pink);
+    text-decoration: none;
+}
+
+.cart-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+}
+
+.cart-icon-wrapper i {
+    font-size: 1.25rem;
+    color: #555;
+    transition: color 0.3s ease;
+}
+
+.nav-cart-beautiful:hover .cart-icon-wrapper i {
+    color: var(--pink);
+}
+
+.beautiful-badge {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    background: linear-gradient(135deg, #e91e63, #f06292);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    height: 18px;
+    min-width: 18px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(233, 30, 99, 0.3);
+}
+
+.cart-text {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+}
+
 /* Старий .main-nav — більше не потрібен, але залишаємо для сумісності */
 .main-nav {
     display: flex;
@@ -490,9 +571,24 @@ header {
         white-space: nowrap;
     }
 
-    /* Кнопки Адмін/Профіль/Вийти — ПОВНІСТЮ СХОВАНІ */
+    /* Кнопки Адмін/Профіль/Вийти перетворюємо на іконки */
     .user-nav {
-        display: none !important;
+        display: flex;
+        gap: 6px;
+    }
+    
+    .user-nav .nav-text {
+        display: none;
+    }
+    
+    .user-nav a {
+        padding: 8px 10px;
+        border-radius: 50%;
+    }
+    
+    .user-nav i {
+        margin: 0;
+        font-size: 1rem;
     }
 
     /* ── Нижній рядок: навігація + серце + кошик ── */
@@ -557,9 +653,12 @@ header {
 
     /* Серце */
     #wishlist-badge {
-        padding: 0 14px !important;
+        padding: 0 12px !important;
         height: 44px !important;
         font-size: 1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     #wishlist-badge i {
@@ -567,15 +666,27 @@ header {
     }
 
     /* Кошик */
-    .nav-item.cart-icon {
-        display: flex !important;
+    .primary-nav ul li a.nav-cart-beautiful {
+        display: inline-flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        height: 44px !important;
-        padding: 0 16px !important;
+        height: 34px !important;
+        padding: 0 12px !important;
         font-size: 0.8rem !important;
         white-space: nowrap !important;
-        gap: 5px !important;
+        gap: 6px !important;
+        background: #fff !important;
+        border: 1px solid #f0e6eb !important;
+        border-radius: 50px !important;
+        margin-left: 8px !important;
+    }
+    
+    .nav-cart-beautiful .cart-icon-wrapper {
+        margin-right: 4px;
+    }
+    .nav-cart-beautiful .beautiful-badge {
+        top: -6px;
+        right: -10px;
     }
 
     /* Інфо-рядок */
@@ -1423,87 +1534,7 @@ footer a {
 }
 
 
-/* АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ТА ПЛАНШЕТІВ */
-@media (max-width: 768px) {
-    .main-nav {
-        flex-direction: column; /* Ставимо елементи в стовпчик */
-        align-items: center;
-        gap: 15px;
-    }
-
-    /* Логотип завжди по центру зверху */
-    .logo-link {
-        order: 1; /* Гарантуємо, що лого перше */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    /* Навігація стає блоком кнопок під логотипом */
-    .primary-nav {
-        order: 2; /* Навігація після логотипу */
-        width: 100%;
-    }
-
-    .primary-nav ul {
-        display: grid; /* Використовуємо сітку для кнопок */
-        grid-template-columns: repeat(2, 1fr); /* 2 кнопки в ряд */
-        gap: 10px;
-        width: 100%;
-    }
-
-    .primary-nav ul li {
-        width: 100%;
-    }
-
-    /* Стилізуємо посилання як кнопки */
-    .primary-nav ul li a {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        background-color: #f8f9fa; /* Світлий фон */
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        text-align: center;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        line-height: 1.1 !important;
-    }
-
-    .primary-nav ul li a:hover {
-        background-color: #e9ecef;
-        border-color: #ccc;
-    }
-
-    /* Користувацька навігація (Вхід/Реєстрація) */
-    .user-nav {
-        order: 3;
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-    }
-
-    /* Кнопка фільтра (бургер) */
-    .filter-menu-toggle {
-        position: absolute;
-        left: 15px;
-        top: 20px; /* Або підлаштуйте під висоту вашої top-bar */
-    }
-}
-
-/* Для дуже маленьких екранів (телефони) */
-@media (max-width: 480px) {
-    .primary-nav ul {
-        grid-template-columns: 1fr; /* 1 кнопка в ряд, якщо екран замалий */
-    }
-    
-    .site-title {
-        font-size: 1.2rem;
-    }
-}
+/* ВИДАЛЕНО СТАРИЙ АДАПТИВ МЕНЮ, ОСКІЛЬКИ ВІН КОНФЛІКТУЄ З ГОРИЗОНТАЛЬНИМ СКРОЛОМ */
 
 .add-to-cart {
     margin-top: 15px;
@@ -1850,11 +1881,11 @@ body.no-scroll::after {
     color: #ff4081;
 }
 @media (max-width: 992px) {
-    /* 1. РОБИМО ВІДСТУП В САЙДБАРІ ДЛЯ ШАПКИ */
+    /* 1. РОБИМО ВІДСТУП В САЙДБАРІ ДЛЯ ШАПКИ (Видалено: не потрібно) */
     .sidebar {
-        padding-top: 80px; 
-        width: 100%; /* Розтягуємо на всю ширину мобільного */
-        left: -100%; /* Ховаємо на 100% ширини */
+        padding-top: 0; 
+        width: 50%; /* Займає половину ширини екрану */
+        left: -50%; /* Ховаємо на 50% ширини */
         min-width: auto;
     }
     .sidebar.active {
@@ -4765,7 +4796,8 @@ body.no-scroll::after {
 /* ── Тіло секції ── */
 .sf-section-body {
     padding: 6px 0 10px;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 2000px;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
     overflow: hidden;
 }
 
@@ -5270,4 +5302,56 @@ body.no-scroll::after {
 }
 @media (max-width: 420px) {
     .wishlist-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- СПЕЦІАЛЬНЕ МЕНЮ ДЛЯ МОБІЛЬНИХ (< 560px) ---------- */
+@media (max-width: 560px) {
+    .header-bottom {
+        overflow-x: visible !important; /* Вимикаємо горизонтальний скрол */
+        padding-bottom: 10px;
+    }
+    .primary-nav {
+        margin-top: 5px;
+    }
+    .primary-nav ul {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        height: auto !important;
+        padding: 0 12px !important;
+        width: 100% !important;
+    }
+    .primary-nav ul li {
+        width: 100% !important;
+        height: 42px !important;
+    }
+    .primary-nav ul li a,
+    #wishlist-badge {
+        width: 100% !important;
+        height: 100% !important;
+        justify-content: center !important;
+        border-radius: 12px !important;
+        background: #fdf5f8 !important;
+        border: 1px solid #f0e6eb !important;
+        color: #4a4a4a !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .primary-nav ul li a:active,
+    #wishlist-badge:active {
+        background: #f8bbd0 !important;
+    }
+
+    /* Кошик і Вішліст робимо більш помітними */
+    #wishlist-badge,
+    .primary-nav ul li a.nav-cart-beautiful {
+        background: #fff !important;
+        box-shadow: 0 2px 8px rgba(233, 30, 99, 0.08) !important;
+    }
+    
+    /* Кошик робимо на всю ширину (займає 2 колонки) */
+    .primary-nav ul li:last-child {
+        grid-column: span 2;
+    }
 }

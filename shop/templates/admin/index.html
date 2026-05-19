@@ -327,6 +327,16 @@
 .app-model-add:hover {
     background: #fce4ec;
 }
+
+@media (max-width: 900px) {
+    .dashboard-two-col {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-actions {
+        justify-content: flex-start;
+    }
+}
 </style>
 {% endblock %}
 
@@ -439,7 +449,8 @@
 
 {% if stats.recent_orders %}
 <p class="dashboard-section-title">🕐 Останні замовлення</p>
-<table class="recent-orders-table">
+<div style="overflow-x: auto; margin-bottom: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(233,30,99,0.06);">
+<table class="recent-orders-table" style="margin-bottom: 0;">
     <thead>
         <tr>
             <th>#</th>
@@ -472,6 +483,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% endif %}
 
 <p class="dashboard-section-title">⚙️ Управління</p>

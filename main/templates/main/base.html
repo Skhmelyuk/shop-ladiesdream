@@ -305,13 +305,23 @@
             <nav class="user-nav">
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" class="btn-admin" hx-boost="false">Адмін</a>
+                        <a href="{% url 'admin:index' %}" class="btn-admin" hx-boost="false">
+                            <i class="fas fa-cog"></i> <span class="nav-text">Адмін</span>
+                        </a>
                     {% endif %}
-                    <a href="{% url 'accounts:profile' %}" class="btn-profile">Профіль</a>
-                    <a href="{% url 'account_logout' %}" class="btn-logout" hx-boost="false">Вийти</a>
+                    <a href="{% url 'accounts:profile' %}" class="btn-profile">
+                        <i class="fas fa-user"></i> <span class="nav-text">Профіль</span>
+                    </a>
+                    <a href="{% url 'account_logout' %}" class="btn-logout" hx-boost="false">
+                        <i class="fas fa-sign-out-alt"></i> <span class="nav-text">Вийти</span>
+                    </a>
                 {% else %}
-                    <a href="{% url 'account_login' %}" class="btn-login">Вхід</a>
-                    <a href="{% url 'account_signup' %}" class="btn-register">Реєстрація</a>
+                    <a href="{% url 'account_login' %}" class="btn-login">
+                        <i class="fas fa-sign-in-alt"></i> <span class="nav-text">Вхід</span>
+                    </a>
+                    <a href="{% url 'account_signup' %}" class="btn-register">
+                        <i class="fas fa-user-plus"></i> <span class="nav-text">Реєстрація</span>
+                    </a>
                 {% endif %}
             </nav>
         </div>
@@ -328,14 +338,16 @@
                         {% include "wishlist/partials/wishlist_badge.html" %}
                     </li>
                     <li>
-                        <a href="{% url 'cart:cart_detail' %}" class="nav-item cart-icon" id="nav-cart-badge">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Кошик</span>
-                            {% with total_items=cart|length %}
-                                {% if total_items > 0 %}
-                                    <span class="cart-count-badge">{{ total_items }}</span>
-                                {% endif %}
-                            {% endwith %}
+                        <a href="{% url 'cart:cart_detail' %}" class="nav-cart-beautiful" id="nav-cart-badge">
+                            <div class="cart-icon-wrapper">
+                                <i class="fas fa-shopping-bag"></i>
+                                {% with total_items=cart|length %}
+                                    {% if total_items > 0 %}
+                                        <span class="beautiful-badge">{{ total_items }}</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                            <span class="cart-text">Кошик</span>
                         </a>
                     </li>
                 </ul>
