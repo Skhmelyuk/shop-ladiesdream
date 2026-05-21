@@ -40,4 +40,29 @@ class LiqPay:
             'send_url': settings.LIQPAY_SEND_URL,
         }
 
+    def check_status(self, order_id):
+        """
+        Перевіряє статус платежу в LiqPay для конкретного order_id
+        """
+        import requests
+        
+        full_params = {
+            'public_key': self.public_key,
+            'version': 3,
+            'action': 'status',
+            'order_id': str(order_id),
+        }
+        
+        data = base64.b64encode(json.dumps(full_params).encode('utf-8')).decode('utf-8')
+        signature = self._generate_signature(data)
+        
+        url = 'https://www.liqpay.ua/api/request'
+        try:
+            response = requests.post(url, data={'data': data, 'signature': signature}, timeout=10)
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception:
+            return None
+
 liqpay_client = LiqPay(settings.LIQPAY_PUBLIC_KEY, settings.LIQPAY_PRIVATE_KEY)

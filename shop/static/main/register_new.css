@@ -30,7 +30,7 @@ body:has(.reg-page) main {
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 60px 50px;
   box-sizing: border-box;

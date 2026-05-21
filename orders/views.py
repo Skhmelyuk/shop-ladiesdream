@@ -33,11 +33,52 @@ def novaposhta_proxy(request):
     except (json.JSONDecodeError, UnicodeDecodeError):
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
 
+    called_method = body.get("calledMethod")
+    props = body.get("methodProperties", {})
+
+    from .models import NPCity, NPWarehouse
+
+    if called_method == "searchSettlements":
+        city_name = props.get("CityName", "")
+        limit = props.get("Limit", 8)
+        cities = NPCity.objects.filter(name__icontains=city_name)[:limit]
+        
+        addresses = []
+        for c in cities:
+            addresses.append({
+                "MainDescription": c.name,
+                "Area": c.area,
+                "Ref": c.ref,
+                "SettlementRef": c.ref
+            })
+            
+        return JsonResponse({
+            "success": True, 
+            "data": [{"Addresses": addresses}] if addresses else []
+        })
+
+    elif called_method == "getWarehouses":
+        settlement_ref = props.get("SettlementRef", "")
+        limit = props.get("Limit", 200)
+        warehouses = NPWarehouse.objects.filter(city__ref=settlement_ref)[:limit]
+        
+        data = []
+        for w in warehouses:
+            data.append({
+                "Ref": w.ref,
+                "Description": w.name,
+                "Number": w.number,
+                "CityRef": settlement_ref
+            })
+            
+        return JsonResponse({"success": True, "data": data})
+
+    # Фолбек на реальне API, якщо викликається щось інше
     payload = {
         "apiKey": settings.NOVAPOSHTA_API_KEY,
         "modelName": body.get("modelName"),
-        "calledMethod": body.get("calledMethod"),
-        "methodProperties": body.get("methodProperties", {})
+        "calledMethod": called_method,
+        "methodProperties": props
     }
 
     response = requests.post(
@@ -63,45 +104,53 @@ def order_create(request):
         form = OrderCreateForm(request.POST)
         
         if form.is_valid():
-            order = form.save(commit=False)
+            from django.db import transaction
             
-            if request.user.is_authenticated:
-                order.user = request.user
-
-            # Зберігаємо дані промокоду та знижки
-            order.promo_code = promo_code_str
-            order.discounted_amount = discount_amount
-            order.final_price = total_price_after_discount
+            with transaction.atomic():
+                order = form.save(commit=False)
                 
-            order.save()
+                if request.user.is_authenticated:
+                    order.user = request.user
 
-            # Створення OrderItem
-            for item in cart:
-                OrderItem.objects.create(
-                    order=order,
-                    product=item['product'],
-                    price=item['price'],
-                    quantity=item['quantity']
-                )
+                # Зберігаємо дані промокоду та знижки
+                order.promo_code = promo_code_str
+                order.discounted_amount = discount_amount
+                order.final_price = total_price_after_discount
+                    
+                order.save()
 
-            # Відправка email
-            subject = f'Ваше замовлення №{order.id} на LadiesDream'
-            message = (
-                f"Шановний(а) {order.first_name},\n\n"
-                f"Дякуємо за Ваше замовлення! Його номер: {order.id}.\n"
-                f"Загальна сума до сплати: {order.final_price} грн."
-            )
-            if order.discounted_amount > 0:
-                message += f" (Врахована знижка за промокодом {order.promo_code} на суму {order.discounted_amount} грн.)\n"
-            message += f"Ми зв'яжемося з Вами найближчим часом для уточнення деталей доставки за адресою: {order.city}, {order.delivery_address}.\n\nЗ повагою,\nКоманда ЛейдісДрім"
-            
-            recipient_list = [order.email]
-            
-            try:
-                send_mail(subject, message, 'support@myshop.com', recipient_list)
-            except Exception as e:
-                logger.error(f"Помилка відправки листа для замовлення {order.id}: {e}", exc_info=True)
+                # Створення OrderItem
+                from main.models import ProductVariant
+                for item in cart:
+                    variant_id = item.get('variant_id')
+                    variant = None
+                    if variant_id:
+                        # select_for_update() блокує рядок для інших транзакцій до завершення поточної
+                        variant = ProductVariant.objects.select_for_update().filter(id=variant_id).first()
+                    else:
+                        item_color = item.get('color', '')
+                        item_size = item.get('size', '')
+                        v_query = ProductVariant.objects.select_for_update().filter(product=item['product'])
+                        if item_color: v_query = v_query.filter(color__name__iexact=item_color)
+                        if item_size: v_query = v_query.filter(size__name__iexact=item_size)
+                        variant = v_query.first()
 
+                    OrderItem.objects.create(
+                        order=order,
+                        product=item['product'],
+                        price=item['price'],
+                        quantity=item['quantity'],
+                        variant=variant
+                    )
+
+                    # Зменшення кількості на складі
+                    if variant:
+                        variant.stock = max(0, variant.stock - item['quantity'])
+                        variant.save()
+
+            # Відправка email асинхронно через Celery
+            from .tasks import send_order_confirmation_email
+            send_order_confirmation_email.delay(order.id)
             liqpay_data = None
             if form.cleaned_data['payment_method'] == 'online':
                 params = {

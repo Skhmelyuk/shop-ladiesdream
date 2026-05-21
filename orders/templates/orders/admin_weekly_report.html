@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LadiesDream — Щотижневий звіт про продажі</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f8; margin: 0; padding: 0; color: #333333;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6f8; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="650" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #673ab7, #512da8); padding: 30px 20px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 1px;">LadiesDream</h1>
+                            <p style="color: #d1c4e9; margin: 5px 0 0 0; font-size: 14px;">Щотижневий аналітичний звіт про продажі</p>
+                            <p style="color: #ffffff; margin: 5px 0 0 0; font-size: 12px; font-weight: bold; background-color: rgba(255,255,255,0.2); display: inline-block; padding: 3px 10px; border-radius: 12px;">
+                                {{ start_date|date:"d.m.Y" }} &mdash; {{ end_date|date:"d.m.Y" }}
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 30px 25px;">
+                            <!-- Stats Cards -->
+                            <table border="0" cellpadding="0" cellspacing="10" width="100%" style="margin-bottom: 20px;">
+                                <tr>
+                                    <!-- Revenue -->
+                                    <td width="50%" style="background-color: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 15px; text-align: center;">
+                                        <div style="font-size: 12px; color: #2e7d32; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Тижнева Виручка</div>
+                                        <div style="font-size: 20px; color: #1b5e20; font-weight: bold;">{{ total_revenue|floatformat:2 }} грн</div>
+                                    </td>
+                                    <!-- Orders Count -->
+                                    <td width="50%" style="background-color: #e3f2fd; border: 1px solid #bbdefb; border-radius: 6px; padding: 15px; text-align: center;">
+                                        <div style="font-size: 12px; color: #1565c0; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Замовлень створено</div>
+                                        <div style="font-size: 20px; color: #0d47a1; font-weight: bold;">{{ total_orders }}</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <!-- Avg Check -->
+                                    <td width="50%" style="background-color: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 15px; text-align: center;">
+                                        <div style="font-size: 12px; color: #f57f17; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Середній чек</div>
+                                        <div style="font-size: 20px; color: #e65100; font-weight: bold;">{{ avg_check|floatformat:2 }} грн</div>
+                                    </td>
+                                    <!-- New Users -->
+                                    <td width="50%" style="background-color: #f3e5f5; border: 1px solid #e1bee7; border-radius: 6px; padding: 15px; text-align: center;">
+                                        <div style="font-size: 12px; color: #6a1b9a; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Нові користувачі</div>
+                                        <div style="font-size: 20px; color: #4a148c; font-weight: bold;">{{ new_users }}</div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px;">
+                                <tr>
+                                    <td style="font-size: 13px; color: #555; text-align: center;">
+                                        Оплачених замовлень за тиждень: <strong style="color: #2e7d32;">{{ paid_orders }}</strong> | 
+                                        Неоплачених: <strong style="color: #c2185b;">{{ unpaid_orders }}</strong>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Day-by-Day Sales -->
+                            <h2 style="font-size: 16px; border-bottom: 2px solid #673ab7; padding-bottom: 6px; color: #512da8; margin-top: 30px;">📈 Динаміка продажів по днях</h2>
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px;">
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="padding: 10px; text-align: left; font-size: 12px; border-bottom: 1px solid #ddd;">Дата</th>
+                                    <th style="padding: 10px; text-align: center; font-size: 12px; border-bottom: 1px solid #ddd;">Всього замовлень</th>
+                                    <th style="padding: 10px; text-align: center; font-size: 12px; border-bottom: 1px solid #ddd;">Оплачених</th>
+                                    <th style="padding: 10px; text-align: right; font-size: 12px; border-bottom: 1px solid #ddd;">Виручка</th>
+                                </tr>
+                                {% for day in daily_stats %}
+                                <tr>
+                                    <td style="padding: 10px; font-size: 13px; border-bottom: 1px solid #eee;">{{ day.date|date:"d.m (D)" }}</td>
+                                    <td style="padding: 10px; font-size: 13px; border-bottom: 1px solid #eee; text-align: center;">{{ day.total }}</td>
+                                    <td style="padding: 10px; font-size: 13px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; color: #2e7d32;">{{ day.paid }}</td>
+                                    <td style="padding: 10px; font-size: 13px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold; color: #673ab7;">{{ day.revenue|floatformat:2 }} грн</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+
+                            <!-- Top Products -->
+                            <h2 style="font-size: 16px; border-bottom: 2px solid #673ab7; padding-bottom: 6px; color: #512da8; margin-top: 30px;">🔥 Популярні товари за тиждень</h2>
+                            {% if top_products %}
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px;">
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="padding: 10px; text-align: left; font-size: 12px; border-bottom: 1px solid #ddd;">Назва товару</th>
+                                    <th style="padding: 10px; text-align: right; font-size: 12px; border-bottom: 1px solid #ddd; width: 80px;">Продано</th>
+                                </tr>
+                                {% for p in top_products %}
+                                <tr>
+                                    <td style="padding: 10px; font-size: 13px; border-bottom: 1px solid #eee;">{{ p.product__name }}</td>
+                                    <td style="padding: 10px; font-size: 13px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">{{ p.total_qty }} шт</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            {% else %}
+                            <p style="font-size: 13px; color: #777; font-style: italic; margin-bottom: 25px;">За цей тиждень продажів не зафіксовано.</p>
+                            {% endif %}
+
+                            <!-- Top Categories -->
+                            <h2 style="font-size: 16px; border-bottom: 2px solid #673ab7; padding-bottom: 6px; color: #512da8; margin-top: 30px;">🏷️ Популярні категорії за тиждень</h2>
+                            {% if top_categories %}
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="padding: 10px; text-align: left; font-size: 12px; border-bottom: 1px solid #ddd;">Категорія</th>
+                                    <th style="padding: 10px; text-align: right; font-size: 12px; border-bottom: 1px solid #ddd; width: 80px;">Продано</th>
+                                </tr>
+                                {% for c in top_categories %}
+                                <tr>
+                                    <td style="padding: 10px; font-size: 13px; border-bottom: 1px solid #eee;">{{ c.product__category__name }}</td>
+                                    <td style="padding: 10px; font-size: 13px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">{{ c.total_qty }} шт</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            {% else %}
+                            <p style="font-size: 13px; color: #777; font-style: italic;">Немає даних.</p>
+                            {% endif %}
+
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #333333; padding: 20px; text-align: center; font-size: 11px; color: #aaaaaa;">
+                            Цей аналітичний звіт згенеровано автоматично планувальником Celery для платформи LadiesDream.<br>
+                            &copy; 2026 LadiesDream. Всі права захищено.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

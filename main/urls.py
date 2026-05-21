@@ -9,5 +9,6 @@ urlpatterns = [
     path('product/<int:id>/<slug:slug>/', views.product_detail, name='product-detail'),
     path('about/', views.about_view, name='about'),
     path('contact/', views.contact_view, name='contact'),
-    
+    path('google-merchant-feed.xml', views.google_merchant_feed, name='google_merchant_feed'),
+    path('robots.txt', views.robots_txt, name='robots_txt'),
 ]

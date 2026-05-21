@@ -3,7 +3,14 @@
 {% load math_filters %}
 {% load dict_filters %}
 
-{% block title %}Деталі товару: {{ product.name }}{% endblock %}
+{% block title %}{{ product.get_seo_title }} — купити в LadiesDream{% endblock %}
+{% block seo_description %}{{ product.get_seo_description }}{% endblock %}
+{% block seo_keywords %}{{ product.get_seo_keywords }}{% endblock %}
+
+{% block og_title %}{{ product.get_seo_title }}{% endblock %}
+{% block og_description %}{{ product.get_seo_description }}{% endblock %}
+{% block og_image %}{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.get_card_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'main/default_product.jpg' %}{% endif %}{% endblock %}
+{% block og_type %}product{% endblock %}
 
 {% block extra_js %}
 <script>
@@ -32,6 +39,32 @@
         mainImage.style.transition = 'transform 0.4s ease';
     });
 })();
+</script>
+
+<!-- Schema.org Structured Data для товарів -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.name|escapejs }}",
+  "image": [
+    "{% if product.image %}{{ request.scheme }}://{{ request.get_host }}{{ product.get_card_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'main/default_product.jpg' %}{% endif %}"
+  ],
+  "description": "{{ product.description|striptags|escapejs }}",
+  "sku": "SKU-{{ product.id }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "LadiesDream"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.build_absolute_uri }}",
+    "priceCurrency": "UAH",
+    "price": "{{ product.get_current_price }}",
+    "itemCondition": "https://schema.org/NewCondition",
+    "availability": "https://schema.org/{% if product.is_available %}InStock{% else %}OutOfStock{% endif %}"
+  }
+}
 </script>
 {% endblock %}
 
@@ -597,7 +630,11 @@ function updateStockInfo() {
     
     if (stock > 0) {
       if (stockCountEl) {
-        stockCountEl.textContent = `В наявності: ${stock} шт.`;
+        if (stock <= 3) {
+            stockCountEl.innerHTML = `В наявності: ${stock} шт. <span style="color: #ff9800; font-weight: 700; margin-left: 8px; font-size: 0.9em;"><i class="fas fa-fire"></i> Поспішайте, закінчується!</span>`;
+        } else {
+            stockCountEl.textContent = `В наявності: ${stock} шт.`;
+        }
         stockCountEl.className = 'pd-stock-count in-stock';
       }
       if (quantityInput) {

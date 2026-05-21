@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     'main.apps.MainConfig',
     'accounts.apps.AccountsConfig',
     'allauth',
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     'discounts.apps.DiscountsConfig',
     'widget_tweaks',
     'django_htmx',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -147,6 +149,8 @@ load_dotenv()
 
 # Доступ до ключа через os.environ
 NOVAPOSHTA_API_KEY = os.environ.get('NP_API_KEY')
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
 
 # ==========================================
 # Allauth Configuration
@@ -167,3 +171,14 @@ LOGIN_REDIRECT_URL = '/'
 
 WISHLIST_SESSION_ID = 'wishlist'
 LOGOUT_REDIRECT_URL = '/'
+
+# ==========================================
+# Celery Configuration
+# ==========================================
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://127.0.0.1:6379/2')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://127.0.0.1:6379/2')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

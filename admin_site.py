@@ -80,3 +80,20 @@ class LadiesDreamAdminSite(AdminSite):
 
 
 admin_site = LadiesDreamAdminSite(name='admin')
+
+try:
+    from django_celery_beat.models import (
+        PeriodicTask, IntervalSchedule, CrontabSchedule, ClockedSchedule, SolarSchedule
+    )
+    from django_celery_beat.admin import (
+        PeriodicTaskAdmin, IntervalScheduleAdmin, CrontabScheduleAdmin, ClockedScheduleAdmin, SolarScheduleAdmin
+    )
+    
+    admin_site.register(PeriodicTask, PeriodicTaskAdmin)
+    admin_site.register(IntervalSchedule, IntervalScheduleAdmin)
+    admin_site.register(CrontabSchedule, CrontabScheduleAdmin)
+    admin_site.register(ClockedSchedule, ClockedScheduleAdmin)
+    admin_site.register(SolarSchedule, SolarScheduleAdmin)
+except ImportError:
+    pass
+

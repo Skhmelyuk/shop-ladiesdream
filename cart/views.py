@@ -172,10 +172,21 @@ class WishlistToggleView(View):
         added = wishlist.toggle(product)
         
         if getattr(request, 'htmx', False):
-            response = render(request, 'wishlist/partials/wishlist_button.html', {
-                'product': product,
-                'in_wishlist': added
-            })
+            current_url = request.META.get('HTTP_HX_CURRENT_URL', '')
+            is_wishlist_page = '/wishlist/' in current_url or 'wishlist' in current_url
+            
+            if is_wishlist_page:
+                response = render(request, 'wishlist/partials/wishlist_content.html', {
+                    'wishlist': wishlist,
+                })
+                response["HX-Retarget"] = "#wishlist-container"
+                response["HX-Reswap"] = "innerHTML"
+            else:
+                response = render(request, 'wishlist/partials/wishlist_button.html', {
+                    'product': product,
+                    'in_wishlist': added
+                })
+            
             msg = "Додано до списку бажань" if added else "Видалено зі списку бажань"
             response["HX-Trigger"] = json.dumps({"showToast": {"message": msg, "type": "success" if added else "info"}})
             return response

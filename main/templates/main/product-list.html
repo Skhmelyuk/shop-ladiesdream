@@ -3,8 +3,55 @@
 {% load math_filters %}
 {% load shop_tags %}
 {% load shop_filters %}
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="{% static 'main/style.css' %}">
+
+{% block title %}
+  {% if category %}
+    {{ category.get_seo_title }} — купити жіночий одяг LadiesDream
+  {% else %}
+    Каталог жіночого одягу — купити одяг в інтернет-магазині LadiesDream
+  {% endif %}
+{% endblock %}
+
+{% block seo_description %}
+  {% if category %}
+    {{ category.get_seo_description }}
+  {% else %}
+    Широкий асортимент якісного жіночого одягу в каталозі інтернет-магазину LadiesDream. Доставка по Україні. Акції, знижки, новинки!
+  {% endif %}
+{% endblock %}
+
+{% block seo_keywords %}
+  {% if category %}
+    {{ category.get_seo_keywords }}
+  {% else %}
+    жіночий одяг, каталог одягу, купити сукню, жіночий одяг інтернет-магазин, LadiesDream
+  {% endif %}
+{% endblock %}
+
+{% block og_title %}
+  {% if category %}
+    {{ category.get_seo_title }}
+  {% else %}
+    Каталог жіночого одягу LadiesDream
+  {% endif %}
+{% endblock %}
+
+{% block og_description %}
+  {% if category %}
+    {{ category.get_seo_description }}
+  {% else %}
+    Широкий асортимент якісного жіночого одягу в каталозі інтернет-магазину LadiesDream. Доставка по Україні.
+  {% endif %}
+{% endblock %}
+
+{% block og_image %}
+  {% if category and category.image %}
+    {{ request.scheme }}://{{ request.get_host }}{{ category.image.url }}
+  {% else %}
+    {{ request.scheme }}://{{ request.get_host }}{% static 'main/images/logo.png' %}
+  {% endif %}
+{% endblock %}
+
 {% block sidebar %}
     {% include "main/partials/sidebar_filters.html" %}
 {% endblock %}

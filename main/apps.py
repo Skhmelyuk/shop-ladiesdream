@@ -6,5 +6,6 @@ class MainConfig(AppConfig):
     name = 'main'
 
     def ready(self):
-        import admin_site  # noqa: F401 — ensure admin_site is fully initialized first
+        import admin_site  # noqa: F401
         import main.admin
+        import main.signals

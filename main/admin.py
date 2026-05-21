@@ -3,6 +3,34 @@ from django.utils.html import format_html
 from .models import Category, Product, Color, Size, ProductVariant, ProductImage, Supplier
 from admin_site import admin_site
 
+from django import forms
+
+# Custom widget to display images compactly in the admin panel inline
+class CompactAdminFileWidget(forms.ClearableFileInput):
+    def render(self, name, value, attrs=None, renderer=None):
+        if value and hasattr(value, "url"):
+            image_url = value.url
+            compact_html = (
+                f'<div style="display: flex; align-items: center; gap: 12px;">'
+                f'  <a href="{image_url}" target="_blank" style="flex-shrink: 0;">'
+                f'    <img src="{image_url}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #f8bbd0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">'
+                f'  </a>'
+                f'  <div style="font-size: 11px; display: flex; flex-direction: column; gap: 4px;">'
+                f'    <input type="file" name="{name}" id="{attrs.get("id", "") or ""}">'
+                f'  </div>'
+                f'</div>'
+            )
+            return format_html(compact_html)
+        else:
+            return format_html(
+                f'<div style="display: flex; align-items: center; gap: 12px;">'
+                f'  <span style="color:#ccc; font-size: 1.1rem; display: inline-flex; width: 50px; height: 50px; align-items: center; justify-content: center; background: #fafafa; border: 1px dashed #ccc; border-radius: 6px; flex-shrink: 0;">📷</span>'
+                f'  <div style="font-size: 11px;">'
+                f'    <input type="file" name="{name}" id="{attrs.get("id", "") or ""}">'
+                f'  </div>'
+                f'</div>'
+            )
+
 # ========== PRODUCT IMAGE ADMIN ==========
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ("product", "image", "order")
@@ -13,6 +41,18 @@ class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
     fields = ("image", "color", "order")
+    
+    class Media:
+        js = ("main/admin_gallery.js",)
+        css = {
+            "all": ("main/admin_gallery.css",)
+        }
+    
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        from django.db import models
+        if isinstance(db_field, models.ImageField):
+            kwargs["widget"] = CompactAdminFileWidget
+        return super().formfield_for_dbfield(db_field, **kwargs)
 
 # Inline для ProductVariant
 class ProductVariantInline(admin.TabularInline):
@@ -53,6 +93,16 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     list_filter = ("is_active",)
     search_fields = ("name",)
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'slug', 'description', 'image', 'is_active')
+        }),
+        ('SEO Оптимізація', {
+            'classes': ('collapse',),
+            'fields': ('seo_title', 'seo_description', 'seo_keywords'),
+            'description': 'Налаштування мета-тегів для покращення індексації пошуковими системами.'
+        }),
+    )
 
 # ========== PRODUCT ADMIN ==========
 class ProductAdmin(admin.ModelAdmin):
@@ -63,6 +113,22 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline, ProductVariantInline]
     filter_horizontal = ("colors", "sizes")
     autocomplete_fields = ("supplier",)
+    
+    fieldsets = (
+        (None, {
+            'fields': (
+                'category', 'supplier', 'name', 'slug', 'description', 
+                'detailed_description', 'price', 'is_available', 'image', 
+                'colors', 'sizes', 'views', 'featured', 'discount_percent', 
+                'discount_price', 'discount_label'
+            )
+        }),
+        ('SEO Оптимізація', {
+            'classes': ('collapse',),
+            'fields': ('seo_title', 'seo_description', 'seo_keywords'),
+            'description': 'Налаштування мета-тегів для покращення індексації пошуковими системами.'
+        }),
+    )
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("variants__color", "colors")

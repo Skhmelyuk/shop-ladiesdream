@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ми сумуємо за Вами в LadiesDream! 💖</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fce4ec; margin: 0; padding: 0; color: #333333;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fce4ec; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 18px rgba(233, 30, 99, 0.15);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #d81b60, #ad1457); padding: 40px 20px; text-align: center;">
+                            <div style="font-size: 50px; margin-bottom: 10px;">✨</div>
+                            <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 1px;">Ми сумуємо за Вами, {{ user.first_name|default:user.username }}!</h1>
+                            <p style="color: #fff; margin: 8px 0 0 0; font-size: 15px; opacity: 0.9;">Вас давно не було в LadiesDream 🌸</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px; text-align: center;">
+                            <p style="font-size: 16px; line-height: 1.6; color: #555555; margin-bottom: 25px;">
+                                Ми помітили, що Ви давно не заходили до нашого магазину. За цей час у нас з'явилося багато неймовірних новинок, трендових речей та яскравих оновлень каталогу, які точно Вам сподобаються!
+                            </p>
+                            
+                            <p style="font-size: 16px; line-height: 1.6; color: #555555; margin-bottom: 30px;">
+                                Щоб зробити Ваше повернення приємним, ми даруємо Вам ексклюзивний промокод на знижку **{{ value_display }}** на наступну покупку!
+                            </p>
+                            
+                            <!-- Promo code container -->
+                            <div style="display: inline-block; background-color: #f8f9fa; border: 2px dashed #d81b60; border-radius: 8px; padding: 15px 30px; margin-bottom: 30px;">
+                                <div style="font-size: 12px; color: #888888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Ваш промокод:</div>
+                                <div style="font-size: 24px; color: #ad1457; font-weight: bold; letter-spacing: 2px;">{{ promo_code }}</div>
+                            </div>
+                            
+                            <p style="font-size: 13px; color: #888888; margin-bottom: 30px;">
+                                *Промокод діє протягом 14 днів (до {{ valid_until|date:"d.m.Y" }} включно) на замовлення сумою від {{ min_amount }} грн.
+                            </p>
+                            
+                            <!-- Call to Action button -->
+                            <div>
+                                <a href="{{ site_url }}" style="background-color: #d81b60; color: #ffffff; text-decoration: none; padding: 15px 35px; border-radius: 25px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 10px rgba(216, 27, 96, 0.3);">
+                                    Перейти до каталогу 🛍️
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 25px; text-align: center; font-size: 11px; color: #888888; border-top: 1px solid #eeeeee;">
+                            Цей лист надіслано автоматично для покупців LadiesDream.<br>
+                            &copy; 2026 LadiesDream. Всі права захищено.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

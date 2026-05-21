@@ -48,6 +48,12 @@ shell: ## Відкрити Django shell
 collectstatic: ## Зібрати статику
 	$(MANAGE) collectstatic --noinput
 
+worker: ## Запустити Celery Worker
+	venv/bin/celery -A shop worker -l info
+
+beat: ## Запустити Celery Beat (планувальник)
+	venv/bin/celery -A shop beat -l info
+
 # ── CSS ───────────────────────────────────────────────────────────────────────
 css: ## Зібрати CSS один раз
 	npm run css:build

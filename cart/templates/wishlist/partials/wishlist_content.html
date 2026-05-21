@@ -1,0 +1,84 @@
+{% load shop_filters %}
+
+{% if wishlist|length > 0 %}
+<!-- Hero заголовок -->
+<div class="wishlist-hero">
+    <div class="wishlist-hero-inner">
+        <div class="wishlist-hero-icon">
+            <i class="fas fa-heart"></i>
+        </div>
+        <div>
+            <h1 class="wishlist-title">Список бажань</h1>
+            <p class="wishlist-subtitle">
+                {{ wishlist|length }} товар{% if wishlist|length == 1 %}{% elif wishlist|length < 5 %}и{% else %}ів{% endif %} у вашому списку
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="wishlist-page">
+    <div class="wishlist-grid" id="wishlist-content">
+        {% for product in wishlist %}
+        <div class="wl-card" id="wishlist-item-{{ product.id }}">
+            
+            <a href="{% url 'main:product-detail' id=product.id slug=product.slug %}" class="wl-card-link">
+                <!-- Зображення -->
+                <div class="wl-card-img-wrapper">
+                    {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="wl-card-img">
+                    {% else %}
+                        <div class="wl-card-no-img"><i class="fas fa-image"></i></div>
+                    {% endif %}
+
+                    {% if product.old_price %}
+                        <span class="wl-sale-badge">
+                            -{{ product.old_price|discount_percentage:product.price }}%
+                        </span>
+                    {% endif %}
+                </div>
+
+                <!-- Інфо-оверлей (спливає при наведенні) -->
+                <div class="wl-card-overlay">
+                    <div class="wl-card-info">
+                        <h3 class="wl-card-name">{{ product.name }}</h3>
+                        <div class="wl-card-price">
+                            {% if product.old_price %}
+                                <span class="wl-old-price">{{ product.old_price }} грн</span>
+                            {% endif %}
+                            <span class="wl-current-price">{{ product.price }} грн</span>
+                        </div>
+                    </div>
+                    <span class="wl-btn-view">Переглянути</span>
+                </div>
+            </a>
+
+            <!-- Кнопка видалення (серце) -->
+            <div class="wl-remove-btn">
+                {% with in_wishlist=True %}
+                    {% include "wishlist/partials/wishlist_button.html" %}
+                {% endwith %}
+            </div>
+            
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% else %}
+<div class="wishlist-page">
+    <!-- Порожній стан -->
+    <div class="wl-empty">
+        <div class="wl-empty-heart">
+            <i class="far fa-heart"></i>
+        </div>
+        <h2 class="wl-empty-title">Список бажань порожній</h2>
+        <p class="wl-empty-text">Додайте сюди товари, які вам сподобалися, натиснувши на ❤️ на картці товару.</p>
+        <a href="{% url 'main:product-list' %}" class="wl-btn-catalog">
+            <i class="fas fa-th-large"></i> Перейти до каталогу
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Out of band swap for the wishlist badge at the top -->
+{% include "wishlist/partials/wishlist_badge.html" with oob=True %}

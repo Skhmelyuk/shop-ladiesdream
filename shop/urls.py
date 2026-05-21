@@ -5,6 +5,15 @@ from django.urls import include, path
 
 from admin_site import admin_site
 
+from django.contrib.sitemaps.views import sitemap
+from main.sitemaps import StaticViewSitemap, CategorySitemap, ProductSitemap
+
+sitemaps = {
+    'static': StaticViewSitemap,
+    'categories': CategorySitemap,
+    'products': ProductSitemap,
+}
+
 urlpatterns = [
     path('admin/', admin_site.urls),
     path('', include('main.urls', namespace='main')),
@@ -15,6 +24,7 @@ urlpatterns = [
     path('orders/', include('orders.urls', namespace='orders')),
     path('reviews/', include('reviews.urls', namespace='reviews')),
     path('ckeditor/', include('ckeditor_uploader.urls')),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
 
 if settings.DEBUG:

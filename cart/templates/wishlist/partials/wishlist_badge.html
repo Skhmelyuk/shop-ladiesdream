@@ -1,10 +1,7 @@
 <a href="{% url 'cart:wishlist_detail' %}" class="nav-icon" title="Список бажань" id="wishlist-badge" {% if oob %}hx-swap-oob="true"{% endif %}>
     <i class="fas fa-heart"></i>
     {% if wishlist|length > 0 %}
-    <span class="badge" x-data x-show="true"
-          x-transition:enter="transition ease-out duration-300 transform"
-          x-transition:enter-start="opacity-0 scale-50"
-          x-transition:enter-end="opacity-100 scale-100">
+    <span class="badge">
         {{ wishlist|length }}
     </span>
     {% endif %}

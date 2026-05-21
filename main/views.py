@@ -26,7 +26,13 @@ def contact_view(request):
 
 def product_list(request, category_slug=None):
     categories = Category.objects.filter(is_active=True).order_by('name')
-    products = Product.objects.filter(is_available=True)
+    products = Product.objects.filter(is_available=True).select_related('category').prefetch_related('variants', 'gallery')
+
+    category = None
+    if category_slug:
+        from django.shortcuts import get_object_or_404
+        category = get_object_or_404(Category, slug=category_slug, is_active=True)
+        products = products.filter(category=category)
 
     # Визначаємо, чи запит на повне скидання (якщо є параметр reset)
     is_reset = request.GET.get('reset') == '1'
@@ -108,6 +114,7 @@ def product_list(request, category_slug=None):
     products_on_page = paginator.get_page(page_number)
 
     context = {
+        'category': category,
         'categories': categories,
         'products': products_on_page,
         'page_obj': products_on_page,
@@ -275,3 +282,41 @@ def product_detail(request, id, slug):
     }
 
     return render(request, 'main/product-detail.html', context)
+
+
+def google_merchant_feed(request):
+    import os
+    from django.conf import settings
+    from django.http import Http404, FileResponse
+    
+    feed_path = os.path.join(settings.MEDIA_ROOT, 'google_merchant_feed.xml')
+    if not os.path.exists(feed_path):
+        from main.tasks import generate_xml_feeds
+        generate_xml_feeds.delay()
+        raise Http404("Фід ще не згенеровано. Запит на генерацію надіслано, спробуйте через хвилину.")
+        
+    return FileResponse(open(feed_path, 'rb'), content_type='application/xml')
+
+
+def robots_txt(request):
+    from django.http import HttpResponse
+    
+    content = """User-agent: *
+Disallow: /admin/
+Disallow: /cart/
+Disallow: /orders/
+Disallow: /accounts/
+Disallow: /ckeditor/
+Disallow: /*?*sort=
+Disallow: /*?*q=
+Disallow: /*?*category=
+Disallow: /*?*size=
+Disallow: /*?*color=
+Disallow: /*?*supplier=
+
+Sitemap: {scheme}://{host}/sitemap.xml
+""".format(
+        scheme=request.scheme,
+        host=request.get_host()
+    )
+    return HttpResponse(content, content_type="text/plain")

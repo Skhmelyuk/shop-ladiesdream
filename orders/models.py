@@ -24,6 +24,33 @@ payment_choices = [
     ("online", "Онлайн оплата"),
 ]
 
+class NPCity(models.Model):
+    ref = models.CharField(max_length=36, unique=True, verbose_name="Ref міста")
+    name = models.CharField(max_length=150, verbose_name="Назва міста")
+    area = models.CharField(max_length=150, verbose_name="Область", blank=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.area})"
+    
+    class Meta:
+        verbose_name = "Місто Нової Пошти"
+        verbose_name_plural = "Міста Нової Пошти"
+        ordering = ['name']
+
+class NPWarehouse(models.Model):
+    ref = models.CharField(max_length=36, unique=True, verbose_name="Ref відділення")
+    city = models.ForeignKey(NPCity, on_delete=models.CASCADE, related_name='warehouses', verbose_name="Місто")
+    name = models.CharField(max_length=250, verbose_name="Назва відділення")
+    number = models.CharField(max_length=20, verbose_name="Номер відділення", blank=True)
+
+    def __str__(self):
+        return f"{self.name}"
+    
+    class Meta:
+        verbose_name = "Відділення Нової Пошти"
+        verbose_name_plural = "Відділення Нової Пошти"
+        ordering = ['number']
+
 class PromoCode(models.Model):
     code = models.CharField(max_length=50, unique=True)
     discount_percent = models.PositiveIntegerField()
@@ -58,6 +85,12 @@ class Order(models.Model):
     verbose_name="Спосіб доставки")
     city = models.CharField(max_length=250, verbose_name="Місто доставки")
     delivery_address = models.CharField(max_length=250, verbose_name="Адреса / Відділення")
+    tracking_number = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Номер ТТН"
+    )
 
     is_billing_address_same = models.BooleanField(
        default=True,
@@ -104,6 +137,27 @@ class Order(models.Model):
         verbose_name = "Замовлення"
         verbose_name_plural = "Замовлення"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_status = self.status
+
+    def save(self, *args, **kwargs):
+        is_cancelling = (self.status == 'cancelled' and self._original_status != 'cancelled')
+        is_restoring = (self.status != 'cancelled' and self._original_status == 'cancelled')
+        super().save(*args, **kwargs)
+        if is_cancelling:
+            for item in self.items.all():
+                if item.variant:
+                    item.variant.stock += item.quantity
+                    item.variant.save()
+            self._original_status = 'cancelled'
+        elif is_restoring:
+            for item in self.items.all():
+                if item.variant:
+                    item.variant.stock = max(0, item.variant.stock - item.quantity)
+                    item.variant.save()
+            self._original_status = self.status
+
     def __str__(self):
         return f'Замовлення {self.id}'
     
@@ -129,6 +183,13 @@ class OrderItem(models.Model):
     )
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ціна за одиницю")
     quantity = models.PositiveIntegerField(default=1, verbose_name="Кількість")
+    variant = models.ForeignKey(
+        'main.ProductVariant',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name="Варіант товару"
+    )
 
     class Meta:
         verbose_name = "Позиція замовлення"
@@ -142,3 +203,30 @@ class OrderItem(models.Model):
         if self.price is None:
             return Decimal('0.00')
         return self.price * self.quantity
+
+
+class SalesReportSetting(models.Model):
+    email_list = models.TextField(
+        verbose_name="Список email адрес",
+        help_text="Вкажіть адреси через кому, пробіл або з нового рядка. Якщо порожньо, публічний звіт не буде надсилатися.",
+        blank=True
+    )
+    is_active = models.BooleanField(
+        verbose_name="Надсилати звіт",
+        default=True,
+        help_text="Увімкнути або вимкнути автоматичне надсилання щоденного звіту"
+    )
+
+    class Meta:
+        verbose_name = "Налаштування щоденного звіту"
+        verbose_name_plural = "Налаштування щоденного звіту"
+
+    def __str__(self):
+        return "Налаштування щоденного звіту"
+        
+    def get_emails(self):
+        if not self.email_list:
+            return []
+        import re
+        emails = re.split(r'[,\s;\n\r]+', self.email_list)
+        return [e.strip() for e in emails if e.strip()]

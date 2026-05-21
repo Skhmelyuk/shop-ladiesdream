@@ -8,6 +8,7 @@ class Cart:
         """
         Ініціалізація кошика.
         """
+        self.request = request
         self.session = request.session
         cart = self.session.get(settings.CART_SESSION_ID)
         if not cart:
@@ -176,6 +177,15 @@ class Cart:
 
     def save(self):
         self.session.modified = True
+        if hasattr(self, 'request') and self.request.user.is_authenticated:
+            from .models import AbandonedCart
+            if self.cart:
+                cart_record, created = AbandonedCart.objects.get_or_create(user=self.request.user)
+                cart_record.cart_data = self.cart
+                cart_record.reminder_sent = False
+                cart_record.save()
+            else:
+                AbandonedCart.objects.filter(user=self.request.user).delete()
 
     def remove(self, product):
         """
@@ -254,5 +264,9 @@ class Cart:
                    for item in self.cart.values())
 
     def clear(self):
+        self.cart = {}
+        if hasattr(self, 'request') and self.request.user.is_authenticated:
+            from .models import AbandonedCart
+            AbandonedCart.objects.filter(user=self.request.user).delete()
         del self.session[settings.CART_SESSION_ID]
         self.save()

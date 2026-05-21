@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.http import HttpResponse
 from django.utils.html import format_html
-from .models import Order, OrderItem
+from .models import Order, OrderItem, SalesReportSetting
 from admin_site import admin_site
 import csv
 import datetime
@@ -38,7 +38,10 @@ def mark_status_delivered(modeladmin, request, queryset):
 mark_status_delivered.short_description = '✅ Статус: Доставлено'
 
 def mark_status_cancelled(modeladmin, request, queryset):
-    queryset.update(status='cancelled')
+    for order in queryset:
+        if order.status != 'cancelled':
+            order.status = 'cancelled'
+            order.save()
 mark_status_cancelled.short_description = '❌ Статус: Скасовано'
 
 def mark_paid(modeladmin, request, queryset):
@@ -70,13 +73,14 @@ class OrderAdmin(admin.ModelAdmin):
         'phone',
         'city',
         'delivery_badge',
+        'tracking_number',
         'status_badge',
         'paid_badge',
         'get_total_cost_display',
         'created',
     ]
     list_filter = ['status', 'paid', 'delivery_type', 'payment_method', 'created']
-    search_fields = ['first_name', 'last_name', 'email', 'phone', 'promo_code', 'city']
+    search_fields = ['first_name', 'last_name', 'email', 'phone', 'promo_code', 'city', 'tracking_number']
     inlines = [OrderItemInline]
     actions = [
         export_to_csv,
@@ -89,7 +93,7 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('user', 'first_name', 'last_name', 'email', 'phone')
         }),
         ("Доставка", {
-            'fields': ('delivery_type', 'city', 'delivery_address')
+            'fields': ('delivery_type', 'city', 'delivery_address', 'tracking_number')
         }),
         ("Оплата і знижка", {
             'fields': ('payment_method', 'paid', 'promo_code', 'discounted_amount', 'final_price', 'get_total_cost_display')
@@ -153,3 +157,21 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 admin_site.register(Order, OrderAdmin)
+
+
+class SalesReportSettingAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'is_active', 'email_list_snippet')
+    
+    def email_list_snippet(self, obj):
+        if not obj.email_list:
+            return "Суперкористувачі (за замовчуванням)"
+        return obj.email_list[:100] + ('...' if len(obj.email_list) > 100 else '')
+    email_list_snippet.short_description = "Список адрес"
+
+    def has_add_permission(self, request):
+        return not SalesReportSetting.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+admin_site.register(SalesReportSetting, SalesReportSettingAdmin)
