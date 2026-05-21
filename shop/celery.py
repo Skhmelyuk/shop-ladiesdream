@@ -22,47 +22,47 @@ def debug_task(self):
 from celery.schedules import crontab
 
 app.conf.beat_schedule = {
-    'sync-novaposhta-every-night': {
+    '🔄 Синхронізація відділень Нової Пошти': {
         'task': 'orders.tasks.sync_novaposhta_data',
         'schedule': crontab(hour=3, minute=0), # Щодня о 3:00 ночі
     },
-    'cancel-unpaid-orders-hourly': {
+    '❌ Скасування неоплачених замовлень': {
         'task': 'orders.tasks.cancel_unpaid_orders',
         'schedule': crontab(minute=0), # Кожну годину
     },
-    'send-abandoned-cart-reminders-every-30-min': {
+    '🛒 Нагадування про покинуті кошики': {
         'task': 'orders.tasks.send_abandoned_cart_reminders',
         'schedule': crontab(minute='*/30'), # Кожні 30 хвилин
     },
-    'send-daily-sales-report-at-21-00': {
+    '📊 Щоденний звіт про продажі': {
         'task': 'orders.tasks.send_daily_sales_report',
         'schedule': crontab(hour=21, minute=0), # Щодня о 21:00
     },
-    'send-weekly-sales-report-monday-09-00': {
+    '📈 Тижневий звіт про продажі': {
         'task': 'orders.tasks.send_weekly_sales_report',
         'schedule': crontab(day_of_week=1, hour=9, minute=0), # Щотижня в понеділок о 9:00 ранку
     },
-    'clear-expired-sessions-and-carts-weekly': {
+    '🧹 Очищення застарілих сесій та кошиків': {
         'task': 'orders.tasks.clear_expired_sessions_and_carts',
         'schedule': crontab(day_of_week=0, hour=3, minute=0), # Щотижня в неділю о 3:00 ночі
     },
-    'send-birthday-greetings-daily-10-00': {
+    '🎂 Привітання з Днем народження': {
         'task': 'orders.tasks.send_birthday_greetings',
         'schedule': crontab(hour=10, minute=0), # Щодня о 10:00 ранку
     },
-    'send-winback-campaign-daily-11-00': {
+    '💖 Повернення "сплячих" клієнтів (Win-back)': {
         'task': 'orders.tasks.send_winback_campaign',
         'schedule': crontab(hour=11, minute=0), # Щодня о 11:00 ранку
     },
-    'track-novaposhta-parcels-every-2-hours': {
+    '🚚 Автоматичний трекінг ТТН Нової Пошти': {
         'task': 'orders.tasks.track_novaposhta_parcels',
         'schedule': crontab(hour='*/2', minute=0), # Кожні 2 години
     },
-    'reconcile-online-payments-nightly': {
+    '💳 Контроль онлайн-оплат (LiqPay/Monobank)': {
         'task': 'orders.tasks.reconcile_online_payments',
         'schedule': crontab(hour=0, minute=30), # Щоночі о 00:30
     },
-    'generate-xml-feeds-nightly': {
+    '🛍️ Генерація XML-фідів для Google/Facebook': {
         'task': 'main.tasks.generate_xml_feeds',
         'schedule': crontab(hour=2, minute=0), # Щоночі о 02:00
     },

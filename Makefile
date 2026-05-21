@@ -5,9 +5,13 @@
 ifeq ($(OS),Windows_NT)
 PYTHON  = venv/Scripts/python
 PIP     = venv/Scripts/pip
+CELERY  = venv/Scripts/celery
+CELERY_OPTS = -P solo
 else
 PYTHON  = venv/bin/python
 PIP     = venv/bin/pip
+CELERY  = venv/bin/celery
+CELERY_OPTS =
 endif
 MANAGE  = $(PYTHON) manage.py
 
@@ -49,10 +53,10 @@ collectstatic: ## Зібрати статику
 	$(MANAGE) collectstatic --noinput
 
 worker: ## Запустити Celery Worker
-	venv/bin/celery -A shop worker -l info
+	$(CELERY) -A shop worker -l info $(CELERY_OPTS)
 
 beat: ## Запустити Celery Beat (планувальник)
-	venv/bin/celery -A shop beat -l info
+	$(CELERY) -A shop beat -l info
 
 # ── CSS ───────────────────────────────────────────────────────────────────────
 css: ## Зібрати CSS один раз
