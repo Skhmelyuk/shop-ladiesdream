@@ -2336,11 +2336,11 @@ body.no-scroll::after {
     flex-direction: column;
     gap: 10px;
     width: 100%;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow-y: hidden; /* Hide scrollbar */
     overflow-x: hidden;
     scroll-behavior: smooth;
-    flex-shrink: 0;
 }
 
 .pd-thumb-arrow {
@@ -2356,6 +2356,7 @@ body.no-scroll::after {
     justify-content: center;
     transition: all 0.2s;
     z-index: 10;
+    flex-shrink: 0;
 }
 
 .pd-thumb-arrow:hover {

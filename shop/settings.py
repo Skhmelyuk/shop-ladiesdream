@@ -107,22 +107,19 @@ CKEDITOR_UPLOAD_PATH = 'uploads/'
 SESSION_COOKIE_AGE = 86400
 CART_SESSION_ID = 'cart'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'support@myshop.com')
 
-# # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# # EMAIL_HOST = 'smtp.gmail.com'
-# # EMAIL_PORT = 587
-# # EMAIL_USE_TLS = True
-# # EMAIL_HOST_USER = 'your_email@gmail.com' 
-# # EMAIL_HOST_PASSWORD = 'your_app_password' 
 
-DEFAULT_FROM_EMAIL = 'support@myshop.com'
-
-# Замінити ці значення на реальні, коли будете використовувати LiqPay
-# Для симуляції:
-# LiqPay (sandbox)
-LIQPAY_PUBLIC_KEY = 'sandbox_i1288150861'
-LIQPAY_PRIVATE_KEY = 'sandbox_crpLh8fGEl7VupxnJlYLvMiGL8TK9byGFTbpU8Hj'
+# Налаштування LiqPay
+LIQPAY_PUBLIC_KEY = os.environ.get('LIQPAY_PUBLIC_KEY', 'sandbox_i1288150861')
+LIQPAY_PRIVATE_KEY = os.environ.get('LIQPAY_PRIVATE_KEY', 'sandbox_crpLh8fGEl7VupxnJlYLvMiGL8TK9byGFTbpU8Hj')
 LIQPAY_SEND_URL = 'https://www.liqpay.ua/api/3/checkout'
 
 

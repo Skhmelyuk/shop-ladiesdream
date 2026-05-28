@@ -120,6 +120,12 @@ class Order(models.Model):
     )
     final_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     paid = models.BooleanField(default=False, verbose_name="Оплачено")
+    liqpay_status = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name="Статус платежу LiqPay"
+    )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,

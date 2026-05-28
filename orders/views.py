@@ -160,8 +160,9 @@ def order_create(request):
                     'amount': str(order.final_price),
                     'description': f'Оплата замовлення №{order.id}',
                     'currency': 'UAH',
-                    'sandbox': 1,
+                    'sandbox': 1 if settings.LIQPAY_PUBLIC_KEY.startswith('sandbox_') else 0,
                     'result_url': request.build_absolute_uri(reverse('orders:payment_complete')),
+                    'server_url': request.build_absolute_uri(reverse('orders:payment_callback')),
                 }
                 liqpay_data = liqpay_client.cpay_params(params)
 
@@ -202,12 +203,14 @@ def payment_start(request, order_id):
 
     params = {
         'action': 'pay',
-        'amount': str(order.get_total_cost()),
+        'amount': str(order.final_price),
         'currency': 'UAH',
         'description': f'Оплата замовлення №{order.id}',
         'order_id': str(order.id),
         'version': '3',
+        'sandbox': 1 if settings.LIQPAY_PUBLIC_KEY.startswith('sandbox_') else 0,
         'result_url': request.build_absolute_uri(reverse('orders:payment_complete')),
+        'server_url': request.build_absolute_uri(reverse('orders:payment_callback')),
     }
     
     liqpay_data = liqpay_client.cpay_params(params)

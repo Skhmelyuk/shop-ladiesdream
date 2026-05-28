@@ -5,6 +5,7 @@ from django.views.generic import ListView
 from django.contrib import messages
 from orders.models import Order
 from .forms import UserUpdateForm, ProfileUpdateForm
+from .models import Profile
 
 class ProfileView(LoginRequiredMixin, View):
     """
@@ -14,7 +15,8 @@ class ProfileView(LoginRequiredMixin, View):
 
     def get(self, request):
         u_form = UserUpdateForm(instance=request.user)
-        p_form = ProfileUpdateForm(instance=request.user.profile)
+        profile, created = Profile.objects.get_or_create(user=request.user)
+        p_form = ProfileUpdateForm(instance=profile)
         context = {
             'u_form': u_form,
             'p_form': p_form,
@@ -24,7 +26,8 @@ class ProfileView(LoginRequiredMixin, View):
 
     def post(self, request):
         u_form = UserUpdateForm(request.POST, instance=request.user)
-        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        profile, created = Profile.objects.get_or_create(user=request.user)
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
         
         if u_form.is_valid() and p_form.is_valid():
             u_form.save()
